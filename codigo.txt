@@ -1,0 +1,2706 @@
+    Option Explicit
+    
+    Implements AhoComprobanteI61.IntComprobante
+    
+    Private mstrClase As String
+    Private mstrMetodo As String
+    Private mstrAccion As String
+    
+    Private mobjAdm As Object
+    Public CtrImp As Object
+    Public lobjAbd As PrestTicketC65.AbdTicket
+    Private Divisa As String
+    
+    Private Codigo As String * 6
+    Private Codigo02 As String * 3
+    Private Descripcion As String
+     
+    Private Monto As String * 12
+    Private Leyenda As String
+    Private Leyenda02 As String
+    Private Leyenda03 As String
+    Private Leyenda04 As String
+    Private Leyenda05 As String
+    
+    Private CodigoBarras As Object
+    
+    Public Calendario As PrestTicketC65.EntCalendarios
+    Public DatosCliente As PrestTicketC65.EntCliente
+    Public DatosClientes As PrestTicketC65.EntClientes
+    Public Operaciones As PreOperacionR65.RdnOperaciones
+    Public CopiaCliente As Boolean
+    Public FecVencimiento As String
+    Public Pais As Long
+    Public EsAptoReformulacion As Boolean
+    Public ImporteRemanente As Double
+    Public ReformulacionHabilitada As String
+    
+    Public EsBoletaReformulada As Boolean
+    Public BoletaReformulada As String
+    Public BoletaAnterior As String
+    Public IdEstatusReformulacion As Integer
+    Public PrestamoAnterior As Double
+    Public PrestamoReformulado As Double
+    Public SaldoAnterior As Double
+    Public TirBoletaReformulada As Integer
+    Public TirBoletaAnterior As Integer
+    
+    Public IdSucursalResguardoBoleta As Long
+    Public SucursalResguardoBoleta As String
+    Public ImporteLiquidacionBoletaAnterior As Double
+    
+    Public MejorasTicketHabilitada As Boolean
+    Public ResultadoTipoProceso As String
+    Public NumeroSemana As String
+    Public Porcentaje As String
+    Public CAT As String
+    Public TIA As String
+    Public TIAMoratoria As String
+    Public IdParametro As Integer
+    Public Valor As String
+    Public FiidProducto As Integer
+    
+    Private Property Let IntComprobante_Clase(ByVal pstrClase As String)
+        mstrClase = pstrClase
+    End Property
+    
+    Private Property Get IntComprobante_Clase() As String
+        IntComprobante_Clase = mstrClase
+    End Property
+    
+    Private Property Let IntComprobante_Metodo(ByVal pstrMetodo As String)
+        mstrMetodo = pstrMetodo
+    End Property
+    
+    Private Property Get IntComprobante_Metodo() As String
+        IntComprobante_Metodo = mstrMetodo
+    End Property
+    
+    Private Property Let IntComprobante_Accion(ByVal pstrAccion As String)
+        mstrAccion = pstrAccion
+    End Property
+    
+    Private Property Get IntComprobante_Accion() As String
+        IntComprobante_Accion = mstrAccion
+    End Property
+    
+    Private Property Set IntComprobante_Adm(ByVal pobjAdm As Object)
+        Set mobjAdm = pobjAdm
+    End Property
+    
+    Private Property Get IntComprobante_Adm() As Object
+        Set IntComprobante_Adm = mobjAdm
+    End Property
+    
+    Private Function IntComprobante_Crear() As Boolean
+    On Error GoTo Catch
+        IntComprobante_Crear = False
+        mstrMetodo = "IntComprobante_Crear()"
+        mstrAccion = "Instanciando la clase AhoImpresionC61.CtrImpresion"
+        
+        Set CtrImp = New AhoImpresionC61.CtrImpresion
+         
+        mobjAdm.CrearObjeto CtrImp, "AhoImpresionC61.CtrImpresion", False, True
+        
+        mstrAccion = "Instanciando la clase NucleoCtrCodigo128C65.EstandarA"
+        Set CodigoBarras = CreateObject("NucleoCtrCodigo128C65.EstandarA")
+        
+        mstrAccion = "Instanciando la clase PreOperacionR65.RdnOperaciones"
+        Set Operaciones = New PreOperacionR65.RdnOperaciones
+        mobjAdm.CrearObjeto Operaciones, "PreOperacionR65.RdnOperaciones", False, True
+        
+        mstrAccion = "Instanciando la clase PrestTicketC65.EntCalendarios"
+        Set Calendario = New PrestTicketC65.EntCalendarios
+        mobjAdm.CrearObjeto Calendario, "PrestTicketC65.EntCalendarios", False, True
+        
+        mstrAccion = "Instanciando la clase PrestTicketC65.EntClientes"
+        Set DatosClientes = New PrestTicketC65.EntClientes
+        mobjAdm.CrearObjeto DatosClientes, "PrestTicketC65.EntClientes", False, True
+        
+        mstrAccion = "Instanciando la clase PrestTicketC65.AbdTicket"
+        Set lobjAbd = New PrestTicketC65.AbdTicket
+        mobjAdm.CrearObjeto lobjAbd, "PrestTicketC65.AbdTicket", True, True
+        
+        IntComprobante_Crear = True
+        
+        Exit Function
+Catch:
+        mobjAdm.CtrErr.Mostrar Me, App, Err, False
+    End Function
+    
+    Private Function IntComprobante_Iniciar() As Boolean
+    On Error GoTo Catch
+        IntComprobante_Iniciar = False
+        mstrMetodo = "IntComprobante_Iniciar()"
+        mstrAccion = "Instanciando Datos Iniciales"
+             
+        CtrImp.TipoInterfase = ePrinter
+        Divisa = mobjAdm.CtrPar.ObtenerParametro(132)
+        CopiaCliente = False
+        
+        IntComprobante_Iniciar = True
+        
+        Exit Function
+Catch:
+        mobjAdm.CtrErr.Mostrar Me, App, Err, False
+    End Function
+    
+    Private Function IntComprobante_Destruir() As Boolean
+    On Error GoTo Catch
+        IntComprobante_Destruir = False
+        mstrMetodo = "Destruir()"
+        mstrAccion = "Destruir"
+        
+        Set CtrImp = Nothing
+        Set mobjAdm = Nothing
+        
+        IntComprobante_Destruir = True
+        
+        Exit Function
+Catch:
+        mobjAdm.CtrErr.Mostrar Me, App, Err, False
+    End Function
+    
+    Private Function IntComprobante_DefinirImpresora(pstrTipoImpresora As String) As Boolean
+    On Error GoTo Catch
+        IntComprobante_DefinirImpresora = False
+        mstrMetodo = "IntComprobante_DefinirImpresora()"
+        mstrAccion = "DefinirImpresora"
+        
+        IntComprobante_DefinirImpresora = CtrImp.DefinirImpresora(pstrTipoImpresora)
+        
+        Exit Function
+Catch:
+        mobjAdm.CtrErr.Mostrar Me, App, Err, False
+    End Function
+    
+    Private Property Let IntComprobante_Archivo(ByVal pstrArchivo As String)
+    On Error GoTo Catch
+        mstrMetodo = "IntComprobante_Archivo()"
+        mstrAccion = "Tipo Archivo"
+        
+        CtrImp.Archivo = pstrArchivo
+        
+        Exit Property
+Catch:
+        mobjAdm.CtrErr.Mostrar Me, App, Err, False
+    End Property
+    
+    Private Property Get IntComprobante_Archivo() As String
+    On Error GoTo Catch
+        IntComprobante_Archivo = False
+        mstrMetodo = "IntComprobante_Archivo()"
+        mstrAccion = "Tipo Archivo"
+        
+        IntComprobante_Archivo = CtrImp.Archivo
+        
+        Exit Property
+Catch:
+        mobjAdm.CtrErr.Mostrar Me, App, Err, False
+    End Property
+    
+    Private Property Let IntComprobante_Reimpresion(ByVal pstrReimpresion As Boolean)
+    On Error GoTo Catch
+        mstrMetodo = "IntComprobante_Archivo()"
+        mstrAccion = "Tipo Archivo"
+        
+        CtrImp.Reimpresion = pstrReimpresion
+        
+        Exit Property
+Catch:
+        mobjAdm.CtrErr.Mostrar Me, App, Err, False
+    End Property
+    
+    Private Property Get IntComprobante_Reimpresion() As Boolean
+    On Error GoTo Catch
+        mstrMetodo = "IntComprobante_Archivo()"
+        mstrAccion = "Tipo Archivo"
+        
+        IntComprobante_Reimpresion = CtrImp.Reimpresion
+        
+        Exit Property
+Catch:
+        mobjAdm.CtrErr.Mostrar Me, App, Err, False
+    End Property
+    
+    Private Property Let IntComprobante_TipoArchivo(ByVal pstrTipoArchivo As AhoComprobanteI61.eTipoArchivo)
+    On Error GoTo Catch
+        mstrMetodo = "IntComprobante_Archivo()"
+        mstrAccion = "Tipo Archivo"
+        
+        CtrImp.TipoArchivo = pstrTipoArchivo
+        
+        Exit Property
+Catch:
+        mobjAdm.CtrErr.Mostrar Me, App, Err, False
+    End Property
+    
+    Private Property Get IntComprobante_TipoArchivo() As AhoComprobanteI61.eTipoArchivo
+    On Error GoTo Catch
+        mstrMetodo = "IntComprobante_Archivo()"
+        mstrAccion = "Tipo Archivo"
+            
+        IntComprobante_Archivo = CtrImp.TipoArchivo
+        
+        Exit Property
+Catch:
+        mobjAdm.CtrErr.Mostrar Me, App, Err, False
+    End Property
+    
+    Private Property Let IntComprobante_TipoDispositivo(ByVal pstrTipoDispositivo As AhoComprobanteI61.eTipoDispositivo)
+    On Error GoTo Catch
+        mstrMetodo = "IntComprobante_TipoDispositivo()"
+        mstrAccion = "Tipo Dispositivo"
+        
+        CtrImp.TipoDispositivo = pstrTipoDispositivo
+        
+        Exit Property
+Catch:
+        mobjAdm.CtrErr.Mostrar Me, App, Err, False
+    End Property
+    
+    Private Property Get IntComprobante_TipoDispositivo() As AhoComprobanteI61.eTipoDispositivo
+    On Error GoTo Catch
+        mstrMetodo = "IntComprobante_TipoDispositivo()"
+        mstrAccion = "Tipo Dispositivo"
+        
+        IntComprobante_Archivo = CtrImp.TipoDispositivo
+        
+        Exit Property
+Catch:
+        mobjAdm.CtrErr.Mostrar Me, App, Err, False
+    End Property
+    
+    Private Function IntComprobante_Imprimir(pObjentidad As Object) As Boolean
+    On Error GoTo Catch
+        IntComprobante_Imprimir = False
+        mstrMetodo = "IntComprobante_Imprimir()"
+        mstrAccion = "Imprimir"
+        Dim lintRespuesta As Integer
+        
+        Select Case CtrImp.TipoDispositivo
+            Case eImpresora
+                Do
+                    CopiaCliente = True
+                    CtrImp.LimpiarPagina
+                    ConstruirComprobante pObjentidad
+                    CtrImp.ImprimirLinea "Cliente", , , eIzquierda
+                    CtrImp.EnviarDispositivo eImpresora
+                    
+                    CopiaCliente = False
+                    CtrImp.LimpiarPagina
+                    ConstruirComprobante pObjentidad
+                    CtrImp.ImprimirLinea "Copia Banco", , , eIzquierda
+                    CtrImp.EnviarDispositivo eImpresora
+                    
+                    If (Pais = 2 And pObjentidad.Boleta.idProducto <> 11 And pObjentidad.Boleta.idProducto <> 2) Then
+                        CopiaCliente = False
+                        CtrImp.LimpiarPagina
+                        ConstruirComprobante pObjentidad
+                        CtrImp.ImprimirLinea "Copia Expediente", , , eIzquierda
+                        CtrImp.EnviarDispositivo eImpresora
+                    End If
+                    
+                    If (Pais = 2 And (pObjentidad.Pago.TipoOperacionCartera = 6 Or pObjentidad.Pago.TipoOperacionCartera = 9 Or pObjentidad.Pago.TipoOperacionCartera = 43)) Then
+                        CopiaCliente = False
+                        CtrImp.LimpiarPagina
+                        ConstruirPagare pObjentidad
+                        CtrImp.ImprimirLinea "Copia Expediente", , , eIzquierda
+                        CtrImp.EnviarDispositivo eImpresora
+                    End If
+                    mobjAdm.CtrMen.Ocultar
+                    lintRespuesta = mobjAdm.CtrAvi.MostrarMensaje(0, "¿Se imprimieron los tickets correctamente?", 14155261, 4210816, , , "ARIAL", 14, 1, vbCenter, "Presta Prenda")
+                Loop Until lintRespuesta = 2
+            Case eVistaPrevia
+                CtrImp.LimpiarPagina
+                ConstruirComprobante pObjentidad
+                CtrImp.EnviarDispositivo eVistaPrevia, CtrImp.Archivo, CtrImp.TipoArchivo
+            Case eGuardarArchivo
+                CtrImp.LimpiarPagina
+                ConstruirComprobante pObjentidad
+                CtrImp.EnviarDispositivo eGuardarArchivo, CtrImp.Archivo, CtrImp.TipoArchivo
+            Case eCargarArchivo
+                CtrImp.LimpiarPagina
+                ConstruirComprobante pObjentidad
+                CtrImp.EnviarDispositivo eCargarArchivo, CtrImp.Archivo, CtrImp.TipoArchivo
+        End Select
+        
+        IntComprobante_Imprimir = True
+        
+        Exit Function
+Catch:
+        mobjAdm.CtrErr.Mostrar Me, App, Err.Description, False
+    End Function
+    Private Function ConstruirComprobante(pObjentidad As Object) As Boolean
+    On Error GoTo Catch
+        ConstruirComprobante = False
+        mstrMetodo = "ConstruirComprobante()"
+        mstrAccion = "Imprimir Encabezado"
+        Dim lIntContador As Integer
+        Dim lBolContinuar As Boolean
+        lBolContinuar = True
+        
+        Pais = mobjAdm.Pais.IdPais
+        
+        If ValidarMejorasTicketHabilitada Then
+            
+            
+            If ResultadoTipoProceso = mobjAdm.CtrPar.ObtenerParametro(3664) Then
+                MejorasTicketHabilitada = True
+            End If
+        End If
+        
+        If CopiaCliente Then
+            lBolContinuar = False
+            If pObjentidad.Boleta.EsBoletaReformulada And (pObjentidad.Pago.TipoOperacionCartera = 20) Then
+                lBolContinuar = pObjentidad.ConsultarDatosPorBoleta
+            ElseIf pObjentidad.Boleta.EsBoletaReformulada And (pObjentidad.Pago.TipoOperacionCartera = 16) Then
+                lBolContinuar = pObjentidad.ConsultarDatosPorBoletaReformulada
+            Else
+                lBolContinuar = pObjentidad.ConsultarDatos
+            End If
+        End If
+        
+        If lBolContinuar Then
+        'ANTES DE ENTRAR A GENERAR EL DOCUMENTO VALIDO SI LA BOLETA NO ES DEL PRODUCTO EXPRESS
+           ValidarOmitirBoletaExpress pObjentidad
+        ' Metodos por default
+            ImprimirEncabezado
+            ImprimirLeyenda pObjentidad
+            ImprimirDatosCliente pObjentidad
+            
+            
+            
+            If MejorasTicketHabilitada = True Then
+                 'pObjentidad.Pago.TipoOperacionCartera = 9  Abono por Refrendo
+                 'pObjentidad.Pago.TipoOperacionCartera = 15 Pago Almacenaje
+                 'pObjentidad.Pago.TipoOperacionCartera = 16 Egreso de Prestamo
+                 'pObjentidad.Pago.TipoOperacionCartera = 20 Abono Liquidacion
+                 'pObjentidad.Pago.TipoOperacionCartera = 43 Abono por Refrendo Extemporaneo
+                 
+            
+                If (pObjentidad.Pago.TipoOperacionCartera = 16 Or pObjentidad.Pago.TipoOperacionCartera = 43 Or pObjentidad.Pago.TipoOperacionCartera = 9 Or pObjentidad.Pago.TipoOperacionCartera = 20 Or pObjentidad.Pago.TipoOperacionCartera = 15 Or pObjentidad.Pago.TipoOperacionCartera = 17 Or pObjentidad.Pago.TipoOperacionCartera = 36) Then
+                
+                        If (pObjentidad.Pago.TipoOperacionCartera = 43 Or pObjentidad.Pago.TipoOperacionCartera = 9 Or pObjentidad.Pago.TipoOperacionCartera = 20 Or pObjentidad.Pago.TipoOperacionCartera = 15 Or pObjentidad.Pago.TipoOperacionCartera = 17 Or pObjentidad.Pago.TipoOperacionCartera = 36) Then
+                             ImprimirImportesAbonoTicket pObjentidad
+                             If (pObjentidad.Pago.TipoOperacionCartera = 9) Then
+                                  ImprimirLeyendaRealizaTuPago pObjentidad
+                             End If
+                            ' ImprimirCalendariodePagosTicket pObjentidad
+                        End If
+                        If (pObjentidad.Pago.TipoOperacionCartera = 20) Then
+                             ImprimirAclaracionesLiquidacion pObjentidad
+                            ' ImprimirCalendariodePagosTicket pObjentidad
+                        End If
+                        If (pObjentidad.Pago.TipoOperacionCartera = 16 Or pObjentidad.Pago.TipoOperacionCartera = 43 Or pObjentidad.Pago.TipoOperacionCartera = 9 Or pObjentidad.Pago.TipoOperacionCartera = 17) Then
+                        ImprimirTerminosCondiciones pObjentidad
+                        End If
+                        'Se valida que tipo de OperacionCartera sea 9=Refrendo o 43=Refrendo Extemporaneo
+                        ' si es 9 o 43  imprime calendario de Pagos
+                         If (pObjentidad.Pago.TipoOperacionCartera = 43 Or pObjentidad.Pago.TipoOperacionCartera = 9) Then
+                             ImprimirCalendariodePagosTicket pObjentidad
+                        End If
+                        If (pObjentidad.Pago.TipoOperacionCartera = 16 Or pObjentidad.Pago.TipoOperacionCartera = 43 Or pObjentidad.Pago.TipoOperacionCartera = 9) Then
+                                If (pObjentidad.Pago.TipoOperacionCartera = 16) Then
+                                               ImprimirLeyendaRealizaTuPago pObjentidad
+                                End If
+                        ImprimirComisionesEstadodeCuenta pObjentidad
+                        ImprimirAclaracionesReclamaciones pObjentidad
+                        
+                        
+                        ImprimirContratoAdhesion pObjentidad
+                        End If
+                Else
+                    ImprimirImportesAbono pObjentidad
+                End If
+            Else
+                ImprimirImportesAbono pObjentidad
+            End If
+            
+                ImprimirPiedePagina pObjentidad
+            If (MejorasTicketHabilitada = True) Then
+                    If (pObjentidad.Pago.TipoOperacionCartera = 16 Or pObjentidad.Pago.TipoOperacionCartera = 43 Or pObjentidad.Pago.TipoOperacionCartera = 9 Or pObjentidad.Pago.TipoOperacionCartera = 20 Or pObjentidad.Pago.TipoOperacionCartera = 23) Then
+                        ImprimirFirmas pObjentidad
+                     ElseIf (pObjentidad.Pago.TipoOperacionCartera = 17) Then
+                         ImprimirLeyendaAbono pObjentidad
+                    End If
+            End If
+            If MejorasTicketHabilitada = False Then
+                ImprimirCalendariodePagos pObjentidad
+                ImprimirPromociones pObjentidad
+                ImprimirPiedePaginaNormal pObjentidad
+                If pObjentidad.Pago.TipoOperacionCartera = 16 Then ImprimirAvisoPrivacidad pObjentidad
+                ImprimirFirmas pObjentidad
+            End If
+            
+        End If
+        
+        ConstruirComprobante = True
+        
+        Exit Function
+Catch:
+        mobjAdm.CtrErr.Mostrar Me, App, Err, False
+    End Function
+    
+    Private Function ImprimirEncabezado() As Boolean
+    On Error GoTo Catch
+        ImprimirEncabezado = False
+        mstrMetodo = "ImprimirEncabezado()"
+        mstrAccion = "Imprimiendo el Encabezado del ticket"
+        Dim lStrImagen As String
+        If Pais = 2 Then
+            lStrImagen = "k:\BMP\LogoBancoTicketPP.jpg"
+        Else
+            'ValidarOmitirBoletaExpress
+            lStrImagen = IIf(MejorasTicketHabilitada = True, mobjAdm.CtrPar.ObtenerParametro(3662), mobjAdm.CtrPar.ObtenerParametro(1578))
+        End If
+        
+        CtrImp.DefinirFuente "Arial", 9, True
+        CtrImp.ImprimirLinea ""
+        'CtrImp.ImprimirImagen lStrImagen, CtrImp.PosicionY, 1650, eCentrado
+        CtrImp.ImprimirImagen lStrImagen, CtrImp.PosicionY, 1350, eCentrado
+        CtrImp.ImprimirLinea ""
+        CtrImp.DefinirFuente "Arial", 9, True
+        Select Case Pais
+        Case 1
+            If MejorasTicketHabilitada = True Then
+                CtrImp.ImprimirLinea "BANCO AZTECA, S.A.", , , eCentrado
+               ' CtrImp.ImprimirLinea pObjentidad.Pago.Boleta, , , eCentrado
+            Else
+                CtrImp.ImprimirLinea "Referencia BANCO AZTECA, S.A.", , , eCentrado
+                
+            End If
+            
+            CtrImp.DefinirFuente "Arial", 8, True
+            CtrImp.ImprimirLinea "  Institución de Banca Múltiple", , , eCentrado
+        Case 2
+            CtrImp.ImprimirLinea "Referencia BANCO AZTECA DE", , , eCentrado
+            CtrImp.ImprimirLinea "GUATEMALA, S.A.", , , eCentrado
+        End Select
+        
+        If (MejorasTicketHabilitada = False) Then
+            CtrImp.DefinirFuente "Arial", 8, True
+            CtrImp.ImprimirLinea mobjAdm.Sesion.IdEstacionTrabajo & " " & Format(Now, "DD/MM/YYYY HH:MM") & " hrs.", , , eCentrado
+        End If
+        
+        
+        
+        ImprimirEncabezado = True
+        Exit Function
+Catch:
+        mobjAdm.CtrErr.Mostrar Me, App, Err, False
+    End Function
+    
+    Private Function ImprimirPromociones(pObjentidad As Object) As Boolean
+    On Error GoTo Catch
+        ImprimirPromociones = False
+        mstrMetodo = "ImprimirPromociones()"
+        mstrAccion = "Imprimiendo promociones"
+        Dim lstrLeyenda As String
+        Dim lStrLeyendas() As String
+        Dim lIntContador As Integer
+        
+        If pObjentidad.Pagos.Contar > 0 Then
+            CtrImp.DefinirFuente "Arial", 10, True
+            If Left(Trim(pObjentidad.Pagos.Seleccionar(1).Promocion), 8) = "PREMIOPP" Then
+                lstrLeyenda = Replace(Trim(pObjentidad.Pagos.Seleccionar(1).Promocion), "PREMIOPP", "")
+                lStrLeyendas = Split(lstrLeyenda, "|")
+                CtrImp.ImprimirLinea ""
+                For lIntContador = 0 To UBound(lStrLeyendas)
+                    CtrImp.ImprimirLinea lStrLeyendas(lIntContador)
+                Next lIntContador
+                CtrImp.ImprimirLinea ""
+                CtrImp.ImprimirSeparador
+            ElseIf Left(Trim(pObjentidad.Pagos.Seleccionar(1).Promocion), 8) = "AVISOCTE" And CopiaCliente Then
+                lstrLeyenda = Replace(Trim(pObjentidad.Pagos.Seleccionar(1).Promocion), "AVISOCTE", "")
+                lStrLeyendas = Split(lstrLeyenda, "|")
+                CtrImp.ImprimirLinea ""
+                For lIntContador = 0 To UBound(lStrLeyendas)
+                    CtrImp.ImprimirLinea lStrLeyendas(lIntContador)
+                Next lIntContador
+                CtrImp.ImprimirLinea ""
+                CtrImp.ImprimirSeparador
+            End If
+        End If
+        
+        ImprimirPromociones = True
+        Exit Function
+Catch:
+        mobjAdm.CtrErr.Mostrar Me, App, Err, False
+    End Function
+    
+    Private Function ImprimirLeyenda(pObjentidad As Object) As Boolean
+    On Error GoTo Catch
+        ImprimirLeyenda = False
+        mstrMetodo = "ImprimirLeyenda()"
+        mstrAccion = "Imprimiendo Leyenda de acuerdo al tipo de Operación"
+        
+        Leyenda = "Recibimos "
+        Leyenda02 = "su pago "
+        Leyenda03 = ""
+        
+        CtrImp.DefinirFuente "Arial", 10, True
+        Select Case pObjentidad.Pago.TipoOperacionCartera  'pobjEntidad.Pago.TopCaja
+            'Agregar  dos lineas mas para el detalle de la leyenda
+            Case 11, 12, 17 ' pago Abono
+                CtrImp.ImprimirLinea "Abono", , , eCentrado
+                
+                If MejorasTicketHabilitada = True Then
+                    CtrImp.DefinirFuente "Arial", 6, True
+                    CtrImp.ImprimirLinea "Crédito Simple con Garantía Prendaria", , , eCentrado
+                    CtrImp.ImprimirLinea "Dinero al Instante con Banco Azteca", , , eCentrado
+                End If
+                
+            Case 20 'Liquidación
+                If Pais = 1 Then
+                    If (MejorasTicketHabilitada = True) Then
+                        CtrImp.ImprimirLinea "Liquidación del Crédito", , , eCentrado
+                        CtrImp.DefinirFuente "Arial", 6, True
+                        CtrImp.ImprimirLinea "Crédito Simple con Garantía Prendaria", , , eCentrado
+                        CtrImp.ImprimirLinea "Dinero al Instante con Banco Azteca", , , eCentrado
+                        ImprimirSubproducto pObjentidad
+                    Else
+                        CtrImp.ImprimirLinea "Liquidación", , , eCentrado
+                    End If
+                    
+                ElseIf Pais = 2 Then
+                    CtrImp.ImprimirLinea "Ticket/Constancia de Liquidación", , , eCentrado
+                End If
+            Case 6, 9 'Refrendo
+                OfrecerReformulacion (Trim(pObjentidad.Boleta.Boleta))
+                   If (MejorasTicketHabilitada = True) Then
+                            CtrImp.DefinirFuente "Arial", 6, True
+                            CtrImp.ImprimirLinea "Pago y Disposición del Crédito", , , eCentrado
+                            CtrImp.ImprimirLinea "Crédito Simple con Garantía Prendaria", , , eCentrado
+                            CtrImp.ImprimirLinea "Dinero al Instante con Banco Azteca", , , eCentrado
+                            ImprimirSubproducto pObjentidad
+                    'De lo contrario debe hacer esto
+                    Else
+                            CtrImp.DefinirFuente "Arial", 10, True
+                            CtrImp.ImprimirLinea "Pago de Intereses", , , eCentrado
+                   End If
+            Case 16 'Egreso
+                If Pais = 1 Then
+                    If (MejorasTicketHabilitada = True) Then
+                        CtrImp.ImprimirLinea "Disposición del Crédito", , , eCentrado
+                        CtrImp.ImprimirLinea "Crédito Simple con Garantía Prendaria", , , eCentrado
+                        CtrImp.ImprimirLinea "Dinero al Instante con Banco Azteca", , , eCentrado
+                        ImprimirSubproducto pObjentidad
+                    Else
+                        CtrImp.ImprimirLinea "Egreso", , , eCentrado
+                    End If
+                    
+                    Leyenda = "Se hizo un egreso por "
+                    Leyenda02 = "el egreso "
+                ElseIf Pais = 2 Then
+                    If (pObjentidad.Boleta.idProducto = 11) Then
+                        CtrImp.ImprimirLinea "Venta", , , eCentrado
+                        Leyenda = "Pago por compra de oro a cuenta de"
+                        Leyenda05 = "Elektrafin Guatemala, S.A. por "
+                        Leyenda02 = "su pago "
+                    Else
+                        CtrImp.ImprimirLinea "Desembolso/Constancia de", , , eCentrado
+                        CtrImp.ImprimirLinea "Otorgamiento del", , , eCentrado
+                        CtrImp.ImprimirLinea "Préstamo", , , eCentrado
+                        Leyenda = "Se hizo un desembolso por "
+                        Leyenda02 = "el desembolso "
+                    End If
+                End If
+            Case 18
+                CtrImp.ImprimirLinea "Reverso", , , eCentrado
+                Leyenda = "Se hizo un reverso por "
+                Leyenda02 = "el reverso "
+            Case 15, 36 'Pago Almacenaje
+                If (MejorasTicketHabilitada = True) Then
+                    CtrImp.ImprimirLinea "Depósito", , , eCentrado
+                    CtrImp.DefinirFuente "Arial", 6, True
+                    'CtrImp.ImprimirLinea "Crédito Simple con Garantía Prendaria", , , eCentrado
+                    'CtrImp.ImprimirLinea "(Dinero al Instante con Banco Azteca)", , , eCentrado
+                     Leyenda = "Importe del depósito"
+                Else
+                    CtrImp.ImprimirLinea "Cobro por Almacenaje", , , eCentrado
+                    Leyenda = "Se hizo un cobro por "
+                    Leyenda02 = "el cobro "
+                End If
+            Case 23
+                If (MejorasTicketHabilitada = True) Then
+                    CtrImp.ImprimirLinea "Pago por Reimpresión", , , eCentrado
+                    CtrImp.DefinirFuente "Arial", 6, True
+                    CtrImp.ImprimirLinea "Crédito Simple con Garantía Prendaria", , , eCentrado
+                    CtrImp.ImprimirLinea "Dinero al Instante con Banco Azteca", , , eCentrado
+                    Leyenda = "Recibimos: "
+                Else
+                    CtrImp.ImprimirLinea "Cobro por Reimpresión", , , eCentrado
+                    Leyenda = "Se hizo un cobro por "
+                End If
+                
+                Leyenda02 = "el cobro "
+                
+            Case 13
+                CtrImp.ImprimirLinea "Pago Parcial de Intereses", , , eCentrado
+            Case 43
+                OfrecerReformulacion (Trim(pObjentidad.Boleta.Boleta))
+                CtrImp.DefinirFuente "Arial", 10, True
+                CtrImp.ImprimirLinea "Pago de Intereses Extemporáneo", , , eCentrado
+                CtrImp.ImprimirLinea "Crédito Simple con Garantía Prendaria", , , eCentrado
+                CtrImp.ImprimirLinea "Dinero al Instante con Banco Azteca", , , eCentrado
+            Case 145 'Cargo Reposicion Tarjeta
+                CtrImp.ImprimirLinea "Cobro por Reposición de Tarjeta", , , eCentrado
+                
+                If (MejorasTicketHabilitada = True) Then
+                    Leyenda = "Recibimos: "
+                Else
+                    Leyenda = "Se hizo un cobro por "
+                    Leyenda02 = "el cobro "
+                End If
+                
+        End Select
+        
+        ImprimirLeyenda = True
+        Exit Function
+Catch:
+        mobjAdm.CtrErr.Mostrar Me, App, Err, False
+    End Function
+    
+    Private Function ImprimirDatosCliente(pObjentidad As Object) As Boolean
+    On Error GoTo Catch
+        ImprimirDatosCliente = False
+        mstrMetodo = "ImprimirDatosCliente()"
+        mstrAccion = "Imprimiendo los datos del Cliente"
+        Dim lstrDatos As String
+        Dim lIntPosicion As Integer
+        Dim lstrTextoAjustado() As String
+        Dim lstrTextoAjustadoApe() As String
+        Dim lIntContador As Integer
+        Dim lstrDatosApellidos As String
+        If CopiaCliente Then ObtenerDatosCliente pObjentidad
+        CtrImp.ImprimirSeparador
+        CtrImp.ImprimirLinea ""
+        CtrImp.DefinirFuente "Arial", 10, True
+        If (MejorasTicketHabilitada = True) Then
+           '  ComprobarNombreyApellido (DatosClientes.Seleccionar(1).Nombre & " " & DatosClientes.Seleccionar(1).ApePaterno & " " & DatosClientes.Seleccionar(1).ApeMaterno)
+              If (DatosClientes.Seleccionar(1).ApePaterno = "" Or DatosClientes.Seleccionar(1).ApeMaterno = "") Then
+                    lstrDatos = DatosClientes.Seleccionar(1).Nombre & " " & DatosClientes.Seleccionar(1).ApePaterno & " " & DatosClientes.Seleccionar(1).ApeMaterno
+                    lstrTextoAjustado = AjustarTexo(lstrDatos, 22)
+                     
+                        CtrImp.DefinirFuente "Arial Black", 8, False
+                        CtrImp.ImprimirLinea "Nombre: " & lstrTextoAjustado(0), , , eIzquierda
+               ElseIf (DatosClientes.Seleccionar(1).ApePaterno <> " " Or DatosClientes.Seleccionar(1).ApeMaterno <> " ") Then
+                    CtrImp.DefinirFuente "Arial Black", 8, False
+                    lstrDatos = DatosClientes.Seleccionar(1).Nombre
+                    lstrTextoAjustado = AjustarTexo(lstrDatos, 22)
+                    lstrDatosApellidos = DatosClientes.Seleccionar(1).ApePaterno & " " & DatosClientes.Seleccionar(1).ApeMaterno
+                    lstrTextoAjustadoApe = AjustarTexo(lstrDatosApellidos, 38)
+                    
+                    CtrImp.DefinirFuente "Arial Black", 8, False
+                    CtrImp.ImprimirLinea "Nombre: " & lstrTextoAjustado(0), , , eIzquierda
+                    CtrImp.ImprimirLinea "              " & lstrTextoAjustadoApe(0), , , eIzquierda
+                End If
+        End If
+    
+        If (MejorasTicketHabilitada = False) Then
+        lstrDatos = DatosClientes.Seleccionar(1).Nombre & " " & DatosClientes.Seleccionar(1).ApePaterno & " " & DatosClientes.Seleccionar(1).ApeMaterno
+        lstrTextoAjustado = AjustarTexo(lstrDatos, 38)
+        End If
+        If (pObjentidad.Pago.TipoOperacionCartera = 16 Or pObjentidad.Pago.TipoOperacionCartera = 43 Or pObjentidad.Pago.TipoOperacionCartera = 9 Or pObjentidad.Pago.TipoOperacionCartera = 20 Or pObjentidad.Pago.TipoOperacionCartera = 17) Then
+        
+        If (MejorasTicketHabilitada = True) Then
+            
+            CtrImp.ImprimirLinea "CLIENTE ÚNICO: " & pObjentidad.Pago.PaisCU & " - " & pObjentidad.Pago.CanalCU & " - " & pObjentidad.Pago.SucursalCU & " - " & pObjentidad.Pago.FolioCU, , , eIzquierda
+            'CtrImp.ImprimirLinea ""
+        End If
+       ' CtrImp.DefinirFuente "Arial Black", 8, False  modificado
+       ' CtrImp.ImprimirLinea "Nombre: " & lstrTextoAjustado(0), , , eIzquierda modificado
+        
+        For lIntContador = 1 To UBound(lstrTextoAjustado)
+           ' CtrImp.ImprimirLinea "                   " & lstrTextoAjustado(lIntContador), , , eIzquierda
+        Next lIntContador
+        
+        If (MejorasTicketHabilitada = True) Then
+        CtrImp.DefinirFuente "Arial", 8, True
+            If pObjentidad.Pago.TipoOperacionCartera <> 145 Then
+               ' CtrImp.ImprimirLinea ""
+                CtrImp.ImprimirLinea "No. Crédito: " & pObjentidad.Pago.Boleta, , , eIzquierda
+           End If
+        End If
+        
+       End If
+       If (pObjentidad.Pago.TipoOperacionCartera = 15 Or pObjentidad.Pago.TipoOperacionCartera = 36) Then
+         If (MejorasTicketHabilitada = True) Then
+            CtrImp.ImprimirLinea "Nombre: Grupo Elektrafin S.A. de C.V.", , , eIzquierda
+            CtrImp.ImprimirLinea "Número de cuenta: 01720186471140", , , eIzquierda
+        End If
+       
+       End If
+       'De lo contrario realiza lo siguiente
+        If (Pais = 2 And (pObjentidad.Boleta.idProducto = 11 Or pObjentidad.Boleta.idProducto = 2)) Then
+            CtrImp.ImprimirLinea "Folio Compra: " & pObjentidad.Pago.Boleta, , , eIzquierda
+        Else
+            
+            If (MejorasTicketHabilitada = False) Then
+                lstrDatos = DatosClientes.Seleccionar(1).Calle & " " & DatosClientes.Seleccionar(1).NumExterior & " " & DatosClientes.Seleccionar(1).NumInterior
+                lstrTextoAjustado = AjustarTexo(lstrDatos, 22)
+                CtrImp.ImprimirLinea "Dirección: " & lstrTextoAjustado(0), , , eIzquierda
+                For lIntContador = 1 To UBound(lstrTextoAjustado)
+                    CtrImp.ImprimirLinea "                   " & lstrTextoAjustado(lIntContador), , , eIzquierda
+                Next lIntContador
+                
+                lstrTextoAjustado = AjustarTexo(DatosClientes.Seleccionar(1).Colonia, 22)
+                CtrImp.ImprimirLinea "Colonia:     " & lstrTextoAjustado(0), , , eIzquierda
+                For lIntContador = 1 To UBound(lstrTextoAjustado)
+                    CtrImp.ImprimirLinea "                   " & lstrTextoAjustado(lIntContador), , , eIzquierda
+                Next lIntContador
+                
+                CtrImp.ImprimirLinea "CP:             " & DatosClientes.Seleccionar(1).CP, , , eIzquierda
+                CtrImp.ImprimirLinea ""
+                CtrImp.ImprimirLinea "Teléfono:    " & DatosClientes.Seleccionar(1).Telefono, , , eIzquierda
+            End If
+            
+            If (MejorasTicketHabilitada = False) Then
+                If pObjentidad.Pago.TipoOperacionCartera <> 145 Then
+                    CtrImp.ImprimirLinea ""
+                    CtrImp.ImprimirLinea "No.Contrato: " & pObjentidad.Pago.Boleta, , , eIzquierda
+                End If
+            End If
+            
+            If pObjentidad.DatosProceso.Pedido > 0 Then
+                
+                CtrImp.ImprimirLinea "Pedido:  " & pObjentidad.DatosProceso.Pedido, , , eIzquierda
+            End If
+        End If
+        
+        
+        
+        If (MejorasTicketHabilitada = False) Then
+            CtrImp.ImprimirLinea ""
+            CtrImp.ImprimirSeparador
+            CtrImp.ImprimirLinea ""
+            CtrImp.DefinirFuente "Arial", 10, True
+        
+            CtrImp.ImprimirLinea "     CLIENTE UNICO: " & pObjentidad.Pago.PaisCU & " - " & pObjentidad.Pago.CanalCU & " - " & pObjentidad.Pago.SucursalCU & " - " & pObjentidad.Pago.FolioCU, , , eIzquierda
+        End If
+        
+        
+        If (MejorasTicketHabilitada = False) Then
+            CtrImp.ImprimirLinea ""
+            CtrImp.ImprimirSeparador
+        End If
+        
+        ImprimirDatosCliente = True
+        
+        Exit Function
+Catch:
+        mobjAdm.CtrErr.Mostrar Me, App, Err, False
+    End Function
+    
+    '**************************************************
+    'En este metodo es para  armar terminos y condiciones
+    'del credito  en disposicion del credito (Egreso)
+    '**************************************************
+    Private Function ImprimirTerminosCondiciones(pObjentidad As Object) As Boolean
+    
+        ImprimirTerminosCondiciones = False
+        mstrMetodo = "ImprimirTerminosCondiciones()"
+        mstrAccion = "Imprimiendo bloque de Terminos y Condiciones del Crédito"
+        
+        Dim lStrMontos() As String
+        Dim lIntContador As Integer
+        Dim lbolimprimirFecRefrendos As Boolean
+        Dim lstrLeyendaenPesos As String
+        Dim lstrTextoAjustado() As String
+        Dim lStrLinea As String, lStrFecVencimiento As String
+        
+        CtrImp.ImprimirLinea ""
+        CtrImp.ImprimirSeparador
+        
+        mstrAccion = "Obteniendo la Fecha de Corte"
+        If pObjentidad.Pago.TipoOperacionCartera <> 145 Then
+            'Aqui mando a obtener calendario
+            ObtenerCalendarioPagos pObjentidad
+            mstrMetodo = "ImprimirTerminosCondiciones()"
+        End If
+        
+        For lIntContador = 1 To Calendario.Coleccion.Count
+            If Trim(Calendario.Seleccionar(lIntContador).Fecha) <> "---------" Then lStrFecVencimiento = Calendario.Seleccionar(lIntContador).Fecha
+        Next lIntContador
+        
+    Select Case pObjentidad.Pago.TipoOperacionCartera  'pobjEntidad.Pago.TopCaja
+        Case 16, 9, 43
+            'Aqui se agrega linea de terminos y condiciones
+            
+            If Not (pObjentidad.Pago.TopCaja = 618 Or pObjentidad.Pago.TopCaja = 787 Or pObjentidad.Pago.TopCaja = 810) Then
+                CtrImp.ImprimirLinea ""
+                CtrImp.DefinirFuente "Arial", 10, True
+                CtrImp.ImprimirLinea "Términos y Condiciones del Crédito", , , eCentrado
+                'CtrImp.DefinirFuente "Arial", 9, True
+                'CtrImp.DefinirFuente "courier new", 5, False
+                CtrImp.ImprimirLinea ""
+                CtrImp.DefinirFuente "courier new", 7, False
+                
+                
+                'Aqui tiene que imprimir Pago semanal
+             'If (pObjentidad.Pago.TipoOperacionCartera = 16) Then
+              '  If pObjentidad.Pago.ImporteRequerido > 0 Then
+              '      mstrAccion = "Colocando Pago Semanal"
+               '     CtrImp.ImprimirLinea ""
+                '    Descripcion = "Pago Semanal"
+                 '   Monto = AlinearPrecio(pObjentidad.Pago.ImporteRequerido, Len(Monto))
+                  '  CtrImp.ImprimirLinea Descripcion & Monto, , , eCentrado
+               'End If
+               'End If
+                
+                'llamando a metodo terminos y condiciones
+                
+                mstrAccion = "Invocando ObtenerTerminosCondiciones"
+                'llamando al metodo terminos y condiciones
+                ObtenerTerminosCondiciones pObjentidad
+                mstrMetodo = "ImprimirTerminosCondiciones()"
+                Descripcion = "CAT(Costo Anual Total)"
+                Porcentaje = Trim(CAT) & " %Sin IVA"
+                CtrImp.DefinirFuente "Arial Black", 7, False
+                CtrImp.ImprimirLinea Descripcion & "                       " & Porcentaje, , , eIzquierda
+                
+                CtrImp.DefinirFuente "courier new", 7, False
+                CtrImp.ImprimirLinea "Para fines informativos y de comparación", , , eCentrado
+                CtrImp.DefinirFuente "courier new", 7, False
+                
+                Descripcion = "Tasa Fija de Interés Anual Ordinaria"
+                Porcentaje = Trim(TIA) & "% Sin IVA"
+                CtrImp.ImprimirLinea Descripcion, , , eIzquierda
+                CtrImp.DefinirFuente "courier new", 7, False
+                CtrImp.ImprimirLinea "                             " & Porcentaje, , , eIzquierda
+                
+                
+                '& Porcentaje
+                
+                CtrImp.DefinirFuente "courier new", 7, False
+                Descripcion = "Tasa de Interés Anual Moratoria"
+                Porcentaje = Trim(TIAMoratoria) & " % Sin IVA"
+                CtrImp.ImprimirLinea Descripcion, , , eIzquierda
+                CtrImp.DefinirFuente "courier new", 7, False
+                CtrImp.ImprimirLinea "                             " & Porcentaje, , , eIzquierda
+                
+                CtrImp.DefinirFuente "courier new", 7, False
+                Descripcion = "Monto del crédito"
+                Monto = AlinearPrecio(pObjentidad.Pago.ImportePrestamo, Len(Monto))
+                CtrImp.ImprimirLinea Descripcion & "               " & Monto, , , eIzquierda
+                
+                
+        
+                Descripcion = "Monto Total a Pagar "
+                Monto = AlinearPrecio(pObjentidad.Pago.SaldoCapital + pObjentidad.Pago.SaldoInteres, Len(Monto))
+                CtrImp.ImprimirLinea Descripcion & "            " & Monto, , , eIzquierda
+            End If
+        End Select
+        
+        
+        'agregando etiqueta de plazo de credito
+        '(pObjentidad.Pago.TipoOperacionCartera = 16 Or pObjentidad.Pago.TipoOperacionCartera = 43 Or pObjentidad.Pago.TipoOperacionCartera = 9 Or pObjentidad.Pago.TipoOperacionCartera = 17)
+       If Not (pObjentidad.Pago.TipoOperacionCartera = 17) Then
+        Descripcion = "Plazo del Crédito"
+        Select Case pObjentidad.Boleta.idProducto
+         Case 1, 6, 8
+             NumeroSemana = "28 Días"
+             CtrImp.ImprimirLinea Descripcion & "                    " & NumeroSemana, , , eIzquierda
+         Case 10
+             NumeroSemana = " 91 Días"
+             CtrImp.ImprimirLinea Descripcion & "                    " & NumeroSemana, , , eCentrado
+         Case 9
+             NumeroSemana = "1 día"
+             CtrImp.ImprimirLinea Descripcion & "                   " & NumeroSemana, , , eIzquierda
+             
+             
+        End Select
+        Descripcion = ""
+        
+        ' fecha limite de pago
+        
+        CtrImp.DefinirFuente "Arial Black", 6, False
+        CtrImp.ImprimirLinea "Fecha Límite de Pago" & "                                           " & Format(lStrFecVencimiento, "DD/MM/YYYY"), , , eIzquierda
+        End If
+                If (pObjentidad.Pago.TipoOperacionCartera = 17) Then
+                       CtrImp.DefinirFuente "Arial Black", 6, False
+                       CtrImp.ImprimirLinea "Fecha Límite de Pago" & "                                           " & Format(lStrFecVencimiento, "DD/MM/YYYY"), , , eIzquierda
+                       CtrImp.ImprimirLinea "Recuerda que esta es la fecha límite para poder liquidar ", , , eIzquierda
+                       CtrImp.ImprimirLinea "el crédito y no perder tus prendas", , , eIzquierda
+                       CtrImp.ImprimirSeparador
+                       
+       End If
+                   
+            
+        For lIntContador = 1 To 1
+            lStrLinea = Calendario.Seleccionar(lIntContador).Fecha
+            '& AlinearPrecio(Calendario.Seleccionar(lIntContador).Refrendo, 14) & AlinearPrecio(Calendario.Seleccionar(lIntContador).Abono, 14) & AlinearPrecio(Calendario.Seleccionar(lIntContador).Desempeño, 15)
+        Next lIntContador
+         If Not (pObjentidad.Pago.TipoOperacionCartera = 17) Then
+            CtrImp.DefinirFuente "courier new", 7, False
+            'fecha de corte
+            CtrImp.ImprimirLinea "Fecha de Corte" & "                       " & "Cada 7 días", , , eIzquierda
+          End If
+        
+        If (pObjentidad.Pago.TipoOperacionCartera = 16) Then
+            'CtrImp.ImprimirLinea Leyenda & mobjAdm.CtrCon.Monedas.Seleccionar(Divisa).Signo & " " & Format(pObjentidad.Pago.ImporteAbono, "###,###.#0"), , , eCentrado
+            'lstrLeyendaenPesos = mobjAdm.CtrCon.Leyenda(pObjentidad.Pago.ImporteAbono, "MXP")
+            Descripcion = "Recibo en efectivo"
+            Monto = AlinearPrecio(pObjentidad.Pago.ImportePrestamo, Len(Monto))
+            CtrImp.ImprimirLinea Descripcion & "               " & Monto, , , eIzquierda
+            
+           ' CtrImp.ImprimirSeparador
+            'CtrImp.DefinirFuente "Arial Black", 6, False
+            '     CtrImp.ImprimirLinea " Sin Comisiones ", , , eCentrado
+        End If
+        
+        'If (pObjentidad.Pago.TipoOperacionCartera = 9 Or pObjentidad.Pago.TipoOperacionCartera = 43) Then
+         '   CtrImp.ImprimirSeparador
+          '   CtrImp.ImprimirLinea " Esta tabla podrá cambiar en caso de realizar pagos anticipados. ", , , eIzquierda
+           '  CtrImp.ImprimirLinea " pagos anticipados. ", , , eIzquierda
+            ' CtrImp.DefinirFuente "Arial", 10, False
+        'End If
+        
+        
+        
+        
+        ImprimirTerminosCondiciones = True
+        
+        Exit Function
+Catch:
+     mobjAdm.CtrErr.Mostrar Me, App, Err.Description, False
+     MsgBox Err.Description
+    End Function
+    
+    'Este metodo nos sirve para imprimir leyenda
+    ' de los subproductos
+     Private Function ImprimirSubproducto(pObjentidad As Object) As Boolean
+    On Error GoTo Catch
+    ImprimirSubproducto = False
+    
+    mstrAccion = "Invocando ObtenerReca"
+    
+    mstrMetodo = "ImprimirSubproducto()"
+    
+    ObtenerReca pObjentidad
+    
+    If (FiidProducto = 1) Then
+        CtrImp.ImprimirLinea "Subproducto: PP Tradicional", , , eCentrado
+        ElseIf (FiidProducto = 6) Then
+        CtrImp.ImprimirLinea "Subproducto: PP Cámbiate", , , eCentrado
+        ElseIf (FiidProducto = 7) Then
+        CtrImp.ImprimirLinea "Subproducto: PP Compra de Oro PP", , , eCentrado
+        ElseIf (FiidProducto = 8) Then
+        CtrImp.ImprimirLinea "Subproducto: PP MAX ", , , eCentrado
+        ElseIf (FiidProducto = 9) Then
+        CtrImp.ImprimirLinea "Subproducto: PP Express", , , eCentrado
+        ElseIf (FiidProducto = 10) Then
+        CtrImp.ImprimirLinea "Subproducto: PP MAX 13", , , eCentrado
+    End If
+    'PP Cámbiate     6
+    'PP MAX 13   10
+    'PP MAX      8
+    'PP Tradicional  1
+    'PP Express  9
+    '
+    ImprimirSubproducto = True
+    
+      Exit Function
+    
+Catch:
+        mobjAdm.CtrErr.Mostrar Me, App, Err.Description, False
+
+End Function
+
+Private Function ImprimirLeyendaRealizaTuPago(pObjentidad As Object) As Boolean
+ On Error GoTo Catch
+    
+    ImprimirLeyendaRealizaTuPago = False
+    
+    mstrAccion = "Invocando ImprimirLeyendaRealizaTuPago"
+    mstrMetodo = "ImprimirLeyendaRealizaTuPago()"
+    
+    
+    CtrImp.ImprimirSeparador
+    CtrImp.DefinirFuente "Arial", 6, False
+    
+    CtrImp.ImprimirLinea "Realiza el pago en tu fecha límite. Evita perder tu(s) prenda(s).", , , eCentrado
+    
+    
+    ImprimirLeyendaRealizaTuPago = False
+    Exit Function
+    
+Catch:
+        mobjAdm.CtrErr.Mostrar Me, App, Err.Description, False
+End Function
+
+Private Function ComprobarNombreyApellido(Nombre As String, ApePaterno As String, ApeMaterno As String) As Boolean
+On Error GoTo Catch
+
+    ComprobarNombreyApellido = False
+    
+    mstrMetodo = "ComprobarNombreyApellido()"
+    mstrAccion = "Comprobar Nombre y Apellidos"
+    Dim lstrDatos As String
+    Dim lstrDatosApellidos As String
+    Dim lstrTextoAjustado() As String
+    Dim lstrTextoAjustadoApe() As String
+                  
+                  If (ApePaterno <> "" Or ApeMaterno <> "") Then
+                    lstrDatos = Nombre & " " & ApePaterno & " " & ApeMaterno
+                    lstrTextoAjustado = AjustarTexo(lstrDatos, 22)
+                     
+                    CtrImp.DefinirFuente "Arial Black", 8, False
+                    CtrImp.ImprimirLinea "Nombre: " & lstrTextoAjustado(0), , , eIzquierda
+                        
+                  ElseIf Len(ApePaterno) > 0 & Len(ApeMaterno) Then
+                    CtrImp.DefinirFuente "Arial Black", 8, False
+                    lstrDatos = Nombre
+                    lstrTextoAjustado = AjustarTexo(lstrDatos, 22)
+                    lstrDatosApellidos = ApePaterno & " " & ApeMaterno
+                    lstrTextoAjustadoApe = AjustarTexo(lstrDatosApellidos, 38)
+                    
+                    CtrImp.DefinirFuente "Arial Black", 8, False
+                    CtrImp.ImprimirLinea "Nombre: " & lstrTextoAjustado(0), , , eIzquierda
+                    CtrImp.ImprimirLinea "        " & lstrTextoAjustadoApe(0), , , eIzquierda
+                  
+                  End If
+                ComprobarNombreyApellido = True
+        
+                 Exit Function
+    
+Catch:
+        mobjAdm.CtrErr.Mostrar Me, App, Err, False
+        
+        
+End Function
+
+
+
+    
+    Private Function ImprimirAclaracionesReclamaciones(pObjentidad As Object) As Boolean
+    On Error GoTo Catch
+    ImprimirAclaracionesReclamaciones = False
+    mstrMetodo = "ImprimirAclaracionesReclamaciones"
+    mstrAccion = "Imprimiendo bloque de Aclaraciones y Reclamaciones del Crédito"
+    
+     CtrImp.ImprimirLinea ""
+     CtrImp.ImprimirSeparador
+     
+     Select Case pObjentidad.Pago.TipoOperacionCartera
+        Case 16, 9, 43
+        mstrAccion = "Colocando Aclaraciones y Reclamaciones"
+        CtrImp.ImprimirLinea ""
+        Descripcion = "Aclaraciones y Reclamaciones"
+        
+        CtrImp.DefinirFuente "Arial Black", 9, False
+        CtrImp.ImprimirLinea Descripcion, , , eCentrado
+        CtrImp.ImprimirLinea ""
+        CtrImp.DefinirFuente "Arial", 7, False
+        CtrImp.ImprimirLinea "Unidad Especializada de Atención a Usuarios", , , eIzquierda
+        CtrImp.ImprimirLinea "Domicilio: Av. Insurgentes Sur No. 3579", , , eIzquierda
+        CtrImp.ImprimirLinea "Torre 2 Piso 3, Colonia Villa Olímpica, Delegacion Tlalpan,", , , eIzquierda
+        CtrImp.ImprimirLinea "Ciudad de México, C.P. 14020", , , eIzquierda
+        CtrImp.ImprimirLinea "Teléfono: 01(55)17207272 y 018008087272", , , eIzquierda
+        CtrImp.ImprimirLinea "Correo electrónico: ueau@bancoazteca.com.mx", , , eIzquierda
+        CtrImp.ImprimirLinea "Página de Internet: www.bancoazteca.com.mx", , , eIzquierda
+        CtrImp.ImprimirSeparador
+     End Select
+        
+        ImprimirAclaracionesReclamaciones = True
+        
+    Exit Function
+    
+Catch:
+        mobjAdm.CtrErr.Mostrar Me, App, Err, False
+    End Function
+    
+    'Todo: este Metodo es el que imprimie el contrato de Adhesion
+    'se valida con ws para obtener el tipo de producto
+    Private Function ImprimirContratoAdhesion(pObjentidad As Object) As Boolean
+    On Error GoTo Catch
+    Dim lstrReca As String
+    Dim lstrValor As String
+    Dim sBuscar As String
+    Dim lstrArray() As String
+    Dim intAuxiliar As Integer
+    ImprimirContratoAdhesion = False
+       
+      CtrImp.ImprimirLinea ""
+    
+      
+      mstrAccion = "Invocando ObtenerReca"
+      'llamando al metodo terminos y condiciones
+      ObtenerReca pObjentidad
+      mstrMetodo = "ImprimirContratoAdhesion()"
+      
+      CtrImp.DefinirFuente "Arial", 6, True
+      
+         If (pObjentidad.Pago.TipoOperacionCartera = 16) Then
+                 CtrImp.ImprimirLinea "Registro de Contratos de Adhesión:" & Valor, , , eIzquierda
+        End If
+        
+        If (pObjentidad.Pago.TipoOperacionCartera = 9) Then
+           
+           lstrArray = Split(Valor, "/")
+           
+           
+            For intAuxiliar = 0 To UBound(lstrArray)
+               If (intAuxiliar = 0) Then
+                    CtrImp.ImprimirLinea "Registro de Contratos de Adhesión:" & Trim(lstrArray(intAuxiliar)), , , eIzquierda
+               End If
+            Next
+      End If
+      
+      CtrImp.DefinirFuente "Arial", 6, False
+      CtrImp.ImprimirLinea "Comision Nacional para la Protección y Defensa de los Usuarios de", , , eIzquierda
+      CtrImp.ImprimirLinea "Servicios Financieros (CONDUSEF)", , , eIzquierda
+      CtrImp.ImprimirLinea "Teléfono: 01 800 999 8080 y 53400999.", , , eIzquierda
+      CtrImp.ImprimirLinea "Página de Internet: www.condusef.gob.mx", , , eIzquierda
+      
+      CtrImp.ImprimirSeparador
+      ImprimirContratoAdhesion = True
+      
+    Exit Function
+    
+Catch:
+        mobjAdm.CtrErr.Mostrar Me, App, Err.Description, False
+    End Function
+    
+    Private Function ImprimirComisionesEstadodeCuenta(pObjentidad As Object) As Boolean
+    On Error GoTo Catch
+    
+        ImprimirComisionesEstadodeCuenta = False
+        
+        
+            mstrAccion = "Invocando ComisionesEstadodeCuenta"
+            mstrMetodo = "ComisionesEstadodeCuenta"
+            
+             If (pObjentidad.Pago.TipoOperacionCartera = 9 Or pObjentidad.Pago.TipoOperacionCartera = 43) Then
+                CtrImp.ImprimirLinea ""
+                CtrImp.DefinirFuente "Arial", 8, True
+                
+                CtrImp.ImprimirLinea " Esta tabla podrá cambiar en caso de realizar  ", , , eIzquierda
+                CtrImp.ImprimirLinea " pagos anticipados. ", , , eIzquierda
+                'CtrImp.ImprimirSeparador
+                ' CtrImp.DefinirFuente "Arial Black", 6, True
+                 'CtrImp.ImprimirLinea " Sin Comisiones ", , , eCentrado
+                 'CtrImp.ImprimirSeparador
+            End If
+            CtrImp.ImprimirSeparador
+            CtrImp.DefinirFuente "Arial Black", 8, True
+            
+            CtrImp.ImprimirLinea "Consulta las comisiones en el ", , , eCentrado
+            CtrImp.ImprimirLinea "Anexo de Comisiones y en", , , eCentrado
+            CtrImp.ImprimirLinea "www.bancoazteca.com.mx", , , eCentrado
+            CtrImp.ImprimirLinea ""
+            CtrImp.ImprimirSeparador
+            CtrImp.DefinirFuente "Arial Black", 8, True
+            CtrImp.ImprimirLinea "Estado de Cuenta", , , eCentrado
+            CtrImp.DefinirFuente "Arial", 6, True
+            CtrImp.ImprimirLinea "Consulta en cualquier sucursal y en www.prestaprenda.com.mx", , , eIzquierda
+           ' CtrImp.ImprimirLinea "y en cualquier sucursal del Banco", , , eCentrado
+           
+            
+            ImprimirComisionesEstadodeCuenta = True
+    
+    Exit Function
+    
+Catch:
+            mobjAdm.CtrErr.Mostrar Me, App, Err.Description, False
+    End Function
+
+    'Todo: en este metodo se realiza la impresion de Recibimos:
+    Private Function ImprimirImportesAbono(pObjentidad As Object) As Boolean
+    On Error GoTo Catch
+        ImprimirImportesAbono = False
+        mstrMetodo = "ImprimirImportesAbono()"
+        mstrAccion = "Imprimiendo los datos del Abono"
+        Dim lStrMontos() As String
+        Dim lIntContador As Integer
+        Dim lbolimprimirFecRefrendos As Boolean
+        Dim lstrLeyendaenPesos As String
+        Dim lstrTextoAjustado() As String
+        
+        
+        Codigo = ""
+        lbolimprimirFecRefrendos = True
+        
+        If pObjentidad.Boleta.idProducto = 10 Then
+            If ((pObjentidad.Pago.TipoOperacionCartera = 6 Or pObjentidad.Pago.TipoOperacionCartera = 9) And ((pObjentidad.Boleta.NumRefrendos + 1) >= pObjentidad.Boleta.NumRefrendosMax)) Then
+                lbolimprimirFecRefrendos = False
+            End If
+        End If
+        
+        CtrImp.ImprimirLinea ""
+        CtrImp.DefinirFuente "Arial", 11, True
+        If Pais = 1 Then
+            If pObjentidad.Boleta.EsBoletaReformulada And (pObjentidad.Pago.TipoOperacionCartera = 20) Then
+                CtrImp.ImprimirLinea Leyenda & mobjAdm.CtrCon.Monedas.Seleccionar(Divisa).Signo & " " & Format(pObjentidad.Boleta.ImporteLiquidar, "###,###.#0"), , , eCentrado
+                lstrLeyendaenPesos = mobjAdm.CtrCon.Leyenda(pObjentidad.Boleta.ImporteLiquidar, "MXP")
+            Else
+                CtrImp.ImprimirLinea Leyenda & mobjAdm.CtrCon.Monedas.Seleccionar(Divisa).Signo & " " & Format(pObjentidad.Pago.ImporteAbono, "###,###.#0"), , , eCentrado
+                lstrLeyendaenPesos = mobjAdm.CtrCon.Leyenda(pObjentidad.Pago.ImporteAbono, "MXP")
+            End If
+        ElseIf Pais = 2 Then
+            If (pObjentidad.Boleta.idProducto = 11 Or pObjentidad.Boleta.idProducto = 2) Then
+                CtrImp.ImprimirLinea Leyenda, , , eCentrado
+                CtrImp.ImprimirLinea Leyenda05, , , eCentrado
+                CtrImp.ImprimirLinea mobjAdm.CtrCon.Monedas.Seleccionar(Divisa).Signo & " " & Format(pObjentidad.Pago.ImporteAbono, "###,###.#0"), , , eCentrado
+            Else
+                CtrImp.ImprimirLinea Leyenda & mobjAdm.CtrCon.Monedas.Seleccionar(Divisa).Signo & " " & Format(pObjentidad.Pago.ImporteAbono, "###,###.#0"), , , eCentrado
+            End If
+            lstrLeyendaenPesos = mobjAdm.CtrCon.Leyenda(pObjentidad.Pago.ImporteAbono, "GTQ")
+        End If
+        CtrImp.DefinirFuente "Arial", 9, True
+        lstrTextoAjustado = AjustarTexo(lstrLeyendaenPesos, 38)
+        CtrImp.ImprimirLinea lstrTextoAjustado(0), , , eCentrado
+        For lIntContador = 1 To UBound(lstrTextoAjustado)
+            CtrImp.ImprimirLinea lstrTextoAjustado(lIntContador), , , eCentrado
+        Next lIntContador
+        
+        'CtrImp.ImprimirLinea mobjAdm.CtrCon.Leyenda(pobjEntidad.Pago.ImporteAbono, "MXP"), , , eCentrado
+        CtrImp.DefinirFuente "Arial", 10, True
+        If Leyenda03 <> "" Then
+            CtrImp.ImprimirLinea Leyenda03, , , eCentrado
+            CtrImp.ImprimirLinea Leyenda04, , , eCentrado
+            CtrImp.ImprimirLinea "Consulte a su valuador", , , eCentrado
+        Else
+            CtrImp.ImprimirLinea "Estimado cliente verifique que ", , , eCentrado
+            CtrImp.ImprimirLinea Leyenda02 & " haya sido aplicado", , , eCentrado
+            CtrImp.ImprimirLinea "correctamente", , , eCentrado
+        End If
+        
+        
+        CtrImp.ImprimirLinea ""
+        CtrImp.ImprimirSeparador
+        
+    Select Case pObjentidad.Pago.TipoOperacionCartera  'pobjEntidad.Pago.TopCaja
+        Case 16, 6, 9, 11, 12, 17, 20, 43
+            If Not (pObjentidad.Pago.TopCaja = 618 Or pObjentidad.Pago.TopCaja = 787 Or pObjentidad.Pago.TopCaja = 810) Then
+                CtrImp.ImprimirLinea ""
+                CtrImp.DefinirFuente "Arial", 10, True
+                
+                CtrImp.ImprimirLinea "Estado de Cuenta", , , eCentrado
+                CtrImp.DefinirFuente "Arial", 9, True
+                CtrImp.ImprimirLinea Codigo & "Concepto                                     Monto", , , eIzquierda
+                CtrImp.DefinirFuente "courier new", 5, False
+                CtrImp.ImprimirLinea ""
+                CtrImp.DefinirFuente "courier new", 7, False
+        
+                Descripcion = "Importe Préstamo"
+                Monto = AlinearPrecio(pObjentidad.Pago.ImportePrestamo, Len(Monto))
+                CtrImp.ImprimirLinea Descripcion & Monto, , , eIzquierda
+        
+                Descripcion = "Saldo"
+                Monto = AlinearPrecio(pObjentidad.Pago.SaldoCapital + pObjentidad.Pago.SaldoInteres, Len(Monto))
+                CtrImp.ImprimirLinea Descripcion & Monto, , , eIzquierda
+                CtrImp.ImprimirLinea ""
+        
+                If pObjentidad.Pagos.Contar > 0 Then
+                    If pObjentidad.Pagos.Seleccionar(1).TipoBoleta = 2 Then
+                        lStrMontos = Split(pObjentidad.Pagos.Seleccionar(1).MontosRefrendo, "|")
+                        If lbolimprimirFecRefrendos Then
+                            For lIntContador = 0 To UBound(lStrMontos)
+                                If (lStrMontos(lIntContador)) > 0 Then
+                                    Descripcion = "Imp. pago de intereses Sem. " & lIntContador + 1
+                                    Monto = AlinearPrecio(lStrMontos(lIntContador), Len(Monto))
+                                    CtrImp.ImprimirLinea Descripcion & Monto, , , eIzquierda
+                                End If
+                            Next lIntContador
+                        End If
+                    End If
+                    
+                    CtrImp.ImprimirLinea ""
+                    
+                    If pObjentidad.Pago.ImporteRequerido > 0 Then
+                        CtrImp.ImprimirLinea ""
+                        Descripcion = "Imp. para Abono Semanal"
+                        Monto = AlinearPrecio(pObjentidad.Pago.ImporteRequerido, Len(Monto))
+                        CtrImp.ImprimirLinea Descripcion & Monto, , , eIzquierda
+                        CtrImp.ImprimirLinea ""
+                    End If
+    
+                    If pObjentidad.Pagos.Contar > 0 Then
+                        If pObjentidad.Pagos.Seleccionar(1).TipoBoleta = 2 Then
+                            lStrMontos = Split(pObjentidad.Pagos.Seleccionar(1).MontosLiquidacion, "|")
+                            For lIntContador = 0 To UBound(lStrMontos)
+                                If (lStrMontos(lIntContador)) > 0 Then
+                                    Descripcion = "Imp. para Liquidar Sem. " & lIntContador + 1
+                                    Monto = AlinearPrecio(lStrMontos(lIntContador), Len(Monto))
+                                    CtrImp.ImprimirLinea Descripcion & Monto, , , eIzquierda
+                                End If
+                            Next lIntContador
+                        End If
+                    End If
+        
+                    If pObjentidad.Pago.ImporteAlmacenaje > 0 Then
+                        Descripcion = "Imp. Almacenaje"
+                        Monto = AlinearPrecio(pObjentidad.Pago.ImporteAlmacenaje, Len(Monto))
+                        CtrImp.ImprimirLinea Descripcion & Monto, , , eIzquierda
+                    End If
+                End If
+            End If
+            
+            If (pObjentidad.Boleta.EsBoletaReformulada And (pObjentidad.Pago.TipoOperacionCartera = 16)) Then
+                CtrImp.ImprimirLinea ""
+                ImporteLiquidacionBoletaAnterior = pObjentidad.Pago.ImportePrestamo - pObjentidad.Pago.ImporteAbono
+                
+                Monto = AlinearPrecio(ImporteLiquidacionBoletaAnterior, Len(Monto))
+                CtrImp.ImprimirLinea mobjAdm.CtrPar.ObtenerParametro(3660) & Monto, , , eIzquierda
+                CtrImp.ImprimirLinea mobjAdm.CtrPar.ObtenerParametro(3661), , , eIzquierda
+                CtrImp.ImprimirLinea ""
+            End If
+            
+            If pObjentidad.Pago.TopCaja = 787 Then  'Nuevo Producto Compra de Oro Express
+                CtrImp.ImprimirLinea ""
+                CtrImp.DefinirFuente "Arial", 10, True
+                CtrImp.ImprimirLinea "Acepto que se envíe mi contrato y", , , eCentrado
+                CtrImp.ImprimirLinea "documentación al correo electrónico", , , eCentrado
+                CtrImp.ImprimirLinea "generado por la empresa", , , eCentrado
+            End If
+                
+        Case 15  'Almacenaje
+            CtrImp.ImprimirLinea ""
+             
+             
+            CtrImp.DefinirFuente "Arial", 10, True
+                          
+            CtrImp.ImprimirLinea "Pago por", , , eCentrado
+            CtrImp.DefinirFuente "Arial", 9, True
+            CtrImp.ImprimirLinea Codigo & "Concepto                                     Monto", , , eIzquierda
+            CtrImp.DefinirFuente "courier new", 5, False
+            CtrImp.ImprimirLinea ""
+            CtrImp.DefinirFuente "courier new", 7, False
+
+            Descripcion = "Importe Almacenaje"
+            Monto = AlinearPrecio(pObjentidad.Pago.ImportePrestamo, Len(Monto))
+            CtrImp.ImprimirLinea Descripcion & "              " & Monto, , , eIzquierda
+            
+            
+ '           CtrImp.DefinirFuente "Arial", 9, False
+            
+  '          CtrImp.ImprimirLinea "Pago por", , , eCentrado
+            
+   '         CtrImp.DefinirFuente "Arial", 9, False
+    '        CtrImp.ImprimirLinea Codigo & "Concepto                                     Monto", , , eCentrado
+     '       CtrImp.DefinirFuente "courier new", 5, False
+      '      CtrImp.ImprimirLinea ""
+       '     CtrImp.DefinirFuente "courier new", 7, False
+        '    Descripcion = "Importe Almacenaje"
+         '   Monto = AlinearPrecio(pObjentidad.Pago.ImporteAbono, Len(Monto))
+          '  CtrImp.ImprimirLinea Codigo & Descripcion & Monto, , , eIzquierda
+           ' CtrImp.ImprimirLinea ""
+            
+        Case 23  'Reimpresion de Boleta
+             CtrImp.ImprimirLinea ""
+             CtrImp.DefinirFuente "Arial", 10, True
+                            
+             CtrImp.ImprimirLinea "Pago por", , , eCentrado
+             CtrImp.DefinirFuente "Arial", 9, True
+             CtrImp.ImprimirLinea Codigo & "Concepto                                     Monto", , , eIzquierda
+             CtrImp.DefinirFuente "courier new", 5, False
+             CtrImp.ImprimirLinea ""
+             CtrImp.DefinirFuente "courier new", 7, False
+             Descripcion = "Importe Reimpresión"
+             Monto = AlinearPrecio(pObjentidad.Pago.ImportePrestamo, Len(Monto))
+             CtrImp.ImprimirLinea Descripcion & "              " & Monto, , , eIzquierda
+            CtrImp.ImprimirLinea ""
+        Case 145  'Reposición de Tarjeta
+            CtrImp.ImprimirLinea ""
+            CtrImp.DefinirFuente "Arial", 10, True
+            CtrImp.ImprimirLinea "Pago por", , , eCentrado
+            CtrImp.DefinirFuente "Arial", 9, True
+            CtrImp.ImprimirLinea Codigo & Codigo & "Concepto                                           Monto", , , eIzquierda
+            CtrImp.DefinirFuente "courier new", 5, False
+            CtrImp.ImprimirLinea ""
+            CtrImp.DefinirFuente "courier new", 7, False
+            Descripcion = "Importe Reposición de Tarjeta"
+            Monto = AlinearPrecio(pObjentidad.Pago.ImporteAbono, Len(Monto))
+            CtrImp.ImprimirLinea Codigo & Descripcion & Monto, , , eIzquierda
+            CtrImp.ImprimirLinea ""
+        End Select
+        
+        ImprimirImportesAbono = True
+        Exit Function
+Catch:
+        mobjAdm.CtrErr.Mostrar Me, App, Err, False
+    End Function
+   
+    'Todo: en este metodo se realiza la impresion de Recibimos:
+      Private Function ImprimirImportesAbonoTicket(pObjentidad As Object) As Boolean
+                On Error GoTo Catch
+                ImprimirImportesAbonoTicket = False
+                mstrMetodo = "ImprimirImportesAbono()"
+                mstrAccion = "Imprimiendo los datos del Abono"
+                Dim lStrMontos() As String
+                Dim lIntContador As Integer
+                Dim lbolimprimirFecRefrendos As Boolean
+                Dim lstrLeyendaenPesos As String
+                Dim lstrTextoAjustado() As String
+
+
+                Codigo = ""
+                lbolimprimirFecRefrendos = True
+                CtrImp.ImprimirSeparador
+                If pObjentidad.Boleta.idProducto = 10 Then
+                If ((pObjentidad.Pago.TipoOperacionCartera = 6 Or pObjentidad.Pago.TipoOperacionCartera = 9) And ((pObjentidad.Boleta.NumRefrendos + 1) >= pObjentidad.Boleta.NumRefrendosMax)) Then
+                    lbolimprimirFecRefrendos = False
+                End If
+                End If
+
+                CtrImp.ImprimirLinea ""
+                CtrImp.DefinirFuente "Arial", 11, True
+                If Pais = 1 Then
+                If pObjentidad.Boleta.EsBoletaReformulada And (pObjentidad.Pago.TipoOperacionCartera = 20) Then
+                    CtrImp.ImprimirLinea Leyenda & mobjAdm.CtrCon.Monedas.Seleccionar(Divisa).Signo & " " & Format(pObjentidad.Boleta.ImporteLiquidar, "###,###.#0"), , , eCentrado
+                    lstrLeyendaenPesos = mobjAdm.CtrCon.Leyenda(pObjentidad.Boleta.ImporteLiquidar, "MXP")
+                    
+                    'Modificacion de las leyendas en los tickets de almacenaje y venta extemporanea
+                ElseIf (pObjentidad.Pago.TipoOperacionCartera = 15 Or pObjentidad.Pago.TipoOperacionCartera = 36) Then
+                        
+                     CtrImp.ImprimirLinea "Efectivo:" & "                                $" & Format(pObjentidad.Pago.ImporteAbono, "###,###.#0"), , , eIzquierda
+                     
+                
+                        CtrImp.ImprimirLinea Leyenda, , , eCentrado
+                        CtrImp.ImprimirLinea mobjAdm.CtrCon.Monedas.Seleccionar(Divisa).Signo & " " & Format(pObjentidad.Pago.ImporteAbono, "###,###.#0"), , , eCentrado
+                        lstrLeyendaenPesos = mobjAdm.CtrCon.Leyenda(pObjentidad.Pago.ImporteAbono, "MXP")
+                Else
+                    CtrImp.ImprimirLinea Leyenda & mobjAdm.CtrCon.Monedas.Seleccionar(Divisa).Signo & " " & Format(pObjentidad.Pago.ImporteAbono, "###,###.#0"), , , eCentrado
+                    lstrLeyendaenPesos = mobjAdm.CtrCon.Leyenda(pObjentidad.Pago.ImporteAbono, "MXP")
+                End If
+                ElseIf Pais = 2 Then
+                If (pObjentidad.Boleta.idProducto = 11 Or pObjentidad.Boleta.idProducto = 2) Then
+                    CtrImp.ImprimirLinea Leyenda, , , eCentrado
+                    CtrImp.ImprimirLinea Leyenda05, , , eCentrado
+                    CtrImp.ImprimirLinea mobjAdm.CtrCon.Monedas.Seleccionar(Divisa).Signo & " " & Format(pObjentidad.Pago.ImporteAbono, "###,###.#0"), , , eCentrado
+                Else
+                    CtrImp.ImprimirLinea Leyenda & mobjAdm.CtrCon.Monedas.Seleccionar(Divisa).Signo & " " & Format(pObjentidad.Pago.ImporteAbono, "###,###.#0"), , , eCentrado
+                End If
+                lstrLeyendaenPesos = mobjAdm.CtrCon.Leyenda(pObjentidad.Pago.ImporteAbono, "GTQ")
+                End If
+                CtrImp.DefinirFuente "Arial", 9, True
+                lstrTextoAjustado = AjustarTexo(lstrLeyendaenPesos, 38)
+                CtrImp.ImprimirLinea lstrTextoAjustado(0), , , eCentrado
+                For lIntContador = 1 To UBound(lstrTextoAjustado)
+                CtrImp.ImprimirLinea lstrTextoAjustado(lIntContador), , , eCentrado
+                Next lIntContador
+                '-----Aqui se imprime el mensaje de Recibimos-------
+                '-----Aqui despues si el tipo cartera es 20 que haga lo siguiente
+                
+                'CtrImp.ImprimirLinea mobjAdm.CtrCon.Leyenda(pobjEntidad.Pago.ImporteAbono, "MXP"), , , eCentrado
+
+
+                CtrImp.ImprimirLinea ""
+                
+                    '    pObjentidad.Pago.TipoOperacionCartera
+                If (pObjentidad.Pago.TipoOperacionCartera = 20 Or pObjentidad.Pago.TipoOperacionCartera = 17) Then
+                    'pobjEntidad.Pago.TopCaja
+                    'Case 20
+                        If Not (pObjentidad.Pago.TopCaja = 618 Or pObjentidad.Pago.TopCaja = 787 Or pObjentidad.Pago.TopCaja = 810) Then
+                            CtrImp.ImprimirSeparador
+                            CtrImp.ImprimirLinea ""
+                            
+                            CtrImp.DefinirFuente "Arial", 10, True
+                            
+                            CtrImp.ImprimirLinea "Saldos y movimientos", , , eCentrado
+                            CtrImp.DefinirFuente "Arial", 9, True
+                            CtrImp.ImprimirLinea Codigo & "Concepto                                     Monto", , , eIzquierda
+                            CtrImp.DefinirFuente "courier new", 5, False
+                            CtrImp.ImprimirLinea ""
+                            CtrImp.DefinirFuente "courier new", 7, False
+
+                            Descripcion = "Importe del crédito"
+                            Monto = AlinearPrecio(pObjentidad.Pago.ImportePrestamo, Len(Monto))
+                            CtrImp.ImprimirLinea Descripcion & "              " & Monto, , , eIzquierda
+
+                            'Format(334.9, "###0.00")  "##,##00.00"
+                            Descripcion = "Saldo"
+                            Monto = AlinearPrecio(pObjentidad.Pago.SaldoCapital + pObjentidad.Pago.SaldoInteres, Len(Monto))
+                            CtrImp.ImprimirLinea Descripcion & "                                   " & Format(Monto, "##,##00.00"), , , eIzquierda
+                            CtrImp.ImprimirLinea ""
+                           ' ImprimirAclaracionesLiquidacion
+                        End If
+                End If
+                
+                
+                     
+
+                ImprimirImportesAbonoTicket = True
+                Exit Function
+Catch:
+        mobjAdm.CtrErr.Mostrar Me, App, Err, False
+    End Function
+    
+    
+    'Metodo Nuevo para las mejoras del Ticket
+     
+    Private Function ImprimirCalendariodePagosTicket(pObjentidad As Object) As Boolean
+    On Error GoTo Catch
+    
+    ImprimirCalendariodePagosTicket = False
+    mstrMetodo = "ImprimirCalendariodePagos()"
+    mstrAccion = "Imprimiendo calendario de Pagos"
+    Codigo = ""
+    Dim lIntContador As Integer, lIntFecha As Integer
+    Dim lStrLinea As String, lStrFecVencimiento As String
+    CtrImp.ImprimirSeparador
+    If CopiaCliente And pObjentidad.Pago.TipoOperacionCartera <> 145 Then
+        ObtenerCalendarioPagos pObjentidad
+    End If
+    
+    For lIntContador = 1 To Calendario.Coleccion.Count
+        If Trim(Calendario.Seleccionar(lIntContador).Fecha) <> "---------" Then lStrFecVencimiento = Calendario.Seleccionar(lIntContador).Fecha
+    Next lIntContador
+        'verificar
+                If (pObjentidad.Pago.TipoOperacionCartera = 9 Or pObjentidad.Pago.TipoOperacionCartera = 43 Or pObjentidad.Pago.TipoOperacionCartera = 20) Then
+                   If MejorasTicketHabilitada = True Then
+                     CtrImp.DefinirFuente "Arial", 10, True
+                     CtrImp.ImprimirLinea "Esquema para Finiquitar el Crédito", , , eCentrado
+                     CtrImp.ImprimirLinea ""
+                     CtrImp.DefinirFuente "Arial", 5, True
+                     CtrImp.ImprimirLinea Codigo & " Fecha de Pago                      Importe                    Pago de                          Pago", , , eIzquierda
+                     CtrImp.ImprimirLinea Codigo & "                                           del Crédito                Intereses                  para Liquidar", , , eCentrado
+                     CtrImp.DefinirFuente "courier new", 5, False
+                     CtrImp.ImprimirLinea ""
+                     CtrImp.DefinirFuente "courier new", 6, False
+                    ' CtrImp.ImprimirSeparador
+                    
+                    'Realiza esto
+                    Else
+                        CtrImp.DefinirFuente "Arial", 10, True
+                        CtrImp.ImprimirLinea "Calendario de Pagos", , , eCentrado
+                        CtrImp.ImprimirLinea ""
+                        'CtrImp.ImprimirSeparador
+                        CtrImp.DefinirFuente "Arial", 5, True
+                        'CtrImp.ImprimirLinea "        Fecha               Prestamo            Refrendo            Pago", , , eIzquierda
+                        'CtrImp.ImprimirLinea "      Fecha             Prestamo            Refrendo        Pago", , , eIzquierda
+                        'CtrImp.ImprimirLinea Codigo & "Fecha      Prestamo     Intereses       Abono   Desempeño", , , eIzquierda
+                        CtrImp.ImprimirLinea Codigo & " Fecha             Intereses           Abono         Liquidación", , , eIzquierda
+                        CtrImp.DefinirFuente "courier new", 5, False
+                        CtrImp.ImprimirLinea ""
+                        CtrImp.DefinirFuente "courier new", 6, False
+                End If
+                    For lIntContador = 1 To Calendario.Coleccion.Count
+                        'lStrLinea = Calendario.Seleccionar(lintContador).Fecha & AlinearPrecio(Calendario.Seleccionar(lintContador).Prestamo, 11) & AlinearPrecio(Calendario.Seleccionar(lintContador).Refrendo, 11) & AlinearPrecio(Calendario.Seleccionar(lintContador).Abono, 11) & AlinearPrecio(Calendario.Seleccionar(lintContador).Desempeño, 11)
+                        lStrLinea = Calendario.Seleccionar(lIntContador).Fecha & AlinearPrecio(Calendario.Seleccionar(lIntContador).Refrendo, 14) & AlinearPrecio(Calendario.Seleccionar(lIntContador).Abono, 14) & AlinearPrecio(Calendario.Seleccionar(lIntContador).Desempeño, 15)
+                        'lStrLinea = Calendario.Seleccionar(lintContador).Fecha & AlinearPrecio(Calendario.Seleccionar(lintContador).Prestamo, 15) & AlinearPrecio(Calendario.Seleccionar(lintContador).Refrendo, 15) & AlinearPrecio(Calendario.Seleccionar(lintContador).Desempeño, 13)
+                        CtrImp.ImprimirLinea "  " & lStrLinea, , , eIzquierda
+                        CtrImp.ImprimirLinea ""
+                    Next lIntContador
+                    
+                    If pObjentidad.Pago.Mensaje <> "NULL" Then
+                        CtrImp.ImprimirLinea ""
+                        CtrImp.ImprimirLinea ""
+                        CtrImp.DefinirFuente "Arial", 9, True
+                        CtrImp.ImprimirLinea pObjentidad.Pago.Mensaje, , , eCentrado
+                    End If
+                    
+                    CtrImp.ImprimirLinea ""
+                    CtrImp.ImprimirSeparador
+                End If
+        
+        
+    
+        
+        'CtrImp.ImprimirLinea mobjAdm.CtrCon.Leyenda(pobjEntidad.Pago.ImporteAbono, "MXP"), , , eCentrado
+        ImprimirCalendariodePagosTicket = True
+        Exit Function
+Catch:
+        mobjAdm.CtrErr.Mostrar Me, App, Err, False
+    End Function
+Private Function ImprimirCalendariodePagos(pObjentidad As Object) As Boolean
+On Error GoTo Catch
+    ImprimirCalendariodePagos = False
+    mstrMetodo = "ImprimirCalendariodePagos()"
+    mstrAccion = "Imprimiendo calendario de Pagos"
+    Codigo = ""
+    Dim lIntContador As Integer, lIntFecha As Integer
+    Dim lStrLinea As String, lStrFecVencimiento As String
+    
+    If CopiaCliente And pObjentidad.Pago.TipoOperacionCartera <> 145 Then
+        ObtenerCalendarioPagos pObjentidad
+    End If
+    
+    For lIntContador = 1 To Calendario.Coleccion.Count
+        If Trim(Calendario.Seleccionar(lIntContador).Fecha) <> "---------" Then lStrFecVencimiento = Calendario.Seleccionar(lIntContador).Fecha
+    Next lIntContador
+    
+    CtrImp.DefinirFuente "Arial", 10, True
+    
+    If pObjentidad.Boleta.idProducto = 10 Then
+        Select Case pObjentidad.Pago.TipoOperacionCartera
+            Case 16
+                CtrImp.ImprimirLinea ""
+                CtrImp.ImprimirLinea "Fecha de vencimiento primeras", , , eCentrado
+                CtrImp.ImprimirLinea "trece semanas:", , , eCentrado
+                CtrImp.ImprimirLinea Format(lStrFecVencimiento, "DD/MM/YYYY"), , , eCentrado
+                ImprimirDatosContacto
+                CtrImp.ImprimirSeparador
+                CtrImp.ImprimirLinea ""
+            Case 6, 9, 11, 12, 13, 17, 43
+                If ((pObjentidad.Boleta.NumRefrendos + 1) >= pObjentidad.Boleta.NumRefrendosMax) Then
+                    CtrImp.ImprimirLinea ""
+                    CtrImp.ImprimirLinea "Fecha de vencimiento: " & Format(lStrFecVencimiento, "DD/MM/YYYY"), , , eCentrado
+                    CtrImp.DefinirFuente "Arial", 10, True
+                    CtrImp.ImprimirLinea "Recuerda que esta es la fecha límite", , , eCentrado
+                    CtrImp.ImprimirLinea "que tienes para poder LIQUIDAR el", , , eCentrado
+                    If Pais = 1 Then
+                        CtrImp.ImprimirLinea "préstamo y no perder tu prenda", , , eCentrado
+                    ElseIf Pais = 2 Then
+                        CtrImp.ImprimirLinea "préstamo", , , eCentrado
+                    End If
+                    ImprimirDatosContacto
+                    CtrImp.ImprimirSeparador
+                    CtrImp.ImprimirLinea ""
+                Else
+                    CtrImp.ImprimirLinea ""
+                    CtrImp.ImprimirLinea "Fecha Vencimiento: " & Format(lStrFecVencimiento, "DD/MM/YYYY"), , , eCentrado
+                    CtrImp.DefinirFuente "Arial", 10, True
+                    CtrImp.ImprimirLinea "Recuerda que esta es la fecha límite", , , eCentrado
+                    If Pais = 1 Then
+                        CtrImp.ImprimirLinea "para poder PAGAR INTERÉS o LIQUIDAR", , , eCentrado
+                        CtrImp.ImprimirLinea "el préstamo y no perder tu prenda", , , eCentrado
+                    ElseIf Pais = 2 Then
+                        CtrImp.ImprimirLinea "para poder PAGAR INTERÉS o LIQUIDAR", , , eCentrado
+                        CtrImp.ImprimirLinea "el préstamo", , , eCentrado
+                    End If
+                    ImprimirDatosContacto
+                    CtrImp.ImprimirSeparador
+                    CtrImp.ImprimirLinea ""
+                End If
+            Case 20
+                ImprimirLeyendaLiquidacion  'EAGH 11-03-2015
+                ImprimirDatosContacto
+                CtrImp.ImprimirSeparador
+                CtrImp.ImprimirLinea ""
+            
+        End Select
+    Else
+        Select Case pObjentidad.Pago.TipoOperacionCartera
+            Case 16
+                If (pObjentidad.Boleta.idProducto <> 7 And pObjentidad.Boleta.idProducto <> 9 And pObjentidad.Boleta.idProducto <> 11) Then
+                    CtrImp.ImprimirLinea ""
+                    CtrImp.ImprimirLinea "Fecha de vencimiento:", , , eCentrado
+                    CtrImp.ImprimirLinea Format(lStrFecVencimiento, "DD/MM/YYYY"), , , eCentrado
+                    ImprimirDatosContacto
+                    CtrImp.ImprimirSeparador
+                    CtrImp.ImprimirLinea ""
+                Else
+                    ImprimirDatosContacto
+                    CtrImp.ImprimirSeparador
+                    CtrImp.ImprimirLinea ""
+                End If
+            Case 6, 9, 11, 12, 13, 17, 20, 43
+                
+                If MejorasTicketHabilitada = False Then
+                                    If pObjentidad.Pago.TipoOperacionCartera <> 20 Then
+                                        CtrImp.ImprimirLinea ""
+                                        '-------------Aqui Verificar si viene las mejoras del ticket apagado
+                                        ' por tipo de cartera
+                                        
+                                        CtrImp.ImprimirLinea "Fecha Vencimiento: " & Format(lStrFecVencimiento, "DD/MM/YYYY"), , , eCentrado
+                                        CtrImp.DefinirFuente "Arial", 10, True
+                                        CtrImp.ImprimirLinea "Recuerda que esta es la fecha límite", , , eCentrado
+                                            If Pais = 1 Then
+                                                CtrImp.ImprimirLinea "para poder PAGAR INTERÉS o LIQUIDAR", , , eCentrado
+                                                CtrImp.ImprimirLinea "el préstamo y no perder tu prenda", , , eCentrado
+                                            ElseIf Pais = 2 Then
+                                                CtrImp.ImprimirLinea "para poder PAGAR INTERÉS o LIQUIDAR", , , eCentrado
+                                                CtrImp.ImprimirLinea "el préstamo", , , eCentrado
+                                            End If
+                                        ImprimirDatosContacto
+                                        CtrImp.ImprimirSeparador
+                                        CtrImp.ImprimirLinea ""
+                                    Else
+                                        ImprimirLeyendaLiquidacion  'EAGH 11-03-2015
+                                        ImprimirDatosContacto
+                                        CtrImp.ImprimirSeparador
+                                        CtrImp.ImprimirLinea ""
+                                    End If
+                End If 'Este hacía falta
+                                    
+                If (pObjentidad.Pago.TipoOperacionCartera = 9 Or pObjentidad.Pago.TipoOperacionCartera = 43) Then
+                                   If MejorasTicketHabilitada = True Then
+                                     CtrImp.DefinirFuente "Arial", 10, True
+                                     CtrImp.ImprimirLinea "Esquema para Finiquitar el Crédito", , , eCentrado
+                                     CtrImp.ImprimirLinea ""
+                                     CtrImp.DefinirFuente "Arial", 5, True
+                                     CtrImp.ImprimirLinea Codigo & " Fecha de Pago              Pago de           Importe del                       Pago", , , eCentrado
+                                     CtrImp.ImprimirLinea Codigo & "                                    Intereses           Crédito                                  para Liquidar", , , eCentrado
+                                     CtrImp.DefinirFuente "courier new", 5, False
+                                     CtrImp.ImprimirLinea ""
+                                     CtrImp.DefinirFuente "courier new", 6, False
+                                    'Realiza esto
+                                    Else
+                                        CtrImp.DefinirFuente "Arial", 10, True
+                                        CtrImp.ImprimirLinea "Calendario de Pagos", , , eCentrado
+                                        CtrImp.ImprimirLinea ""
+                                        'CtrImp.ImprimirSeparador
+                                        CtrImp.DefinirFuente "Arial", 5, True
+                                        'CtrImp.ImprimirLinea "        Fecha               Prestamo            Refrendo            Pago", , , eIzquierda
+                                        'CtrImp.ImprimirLinea "      Fecha             Prestamo            Refrendo        Pago", , , eIzquierda
+                                        'CtrImp.ImprimirLinea Codigo & "Fecha      Prestamo     Intereses       Abono   Desempeño", , , eIzquierda
+                                        CtrImp.ImprimirLinea Codigo & " Fecha             Intereses           Abono         Liquidación", , , eIzquierda
+                                        CtrImp.DefinirFuente "courier new", 5, False
+                                        CtrImp.ImprimirLinea ""
+                                        CtrImp.DefinirFuente "courier new", 6, False
+                                    End If
+                    
+                                    For lIntContador = 1 To Calendario.Coleccion.Count
+                                        'lStrLinea = Calendario.Seleccionar(lintContador).Fecha & AlinearPrecio(Calendario.Seleccionar(lintContador).Prestamo, 11) & AlinearPrecio(Calendario.Seleccionar(lintContador).Refrendo, 11) & AlinearPrecio(Calendario.Seleccionar(lintContador).Abono, 11) & AlinearPrecio(Calendario.Seleccionar(lintContador).Desempeño, 11)
+                                        lStrLinea = Calendario.Seleccionar(lIntContador).Fecha & AlinearPrecio(Calendario.Seleccionar(lIntContador).Refrendo, 14) & AlinearPrecio(Calendario.Seleccionar(lIntContador).Abono, 14) & AlinearPrecio(Calendario.Seleccionar(lIntContador).Desempeño, 15)
+                                        'lStrLinea = Calendario.Seleccionar(lintContador).Fecha & AlinearPrecio(Calendario.Seleccionar(lintContador).Prestamo, 15) & AlinearPrecio(Calendario.Seleccionar(lintContador).Refrendo, 15) & AlinearPrecio(Calendario.Seleccionar(lintContador).Desempeño, 13)
+                                        CtrImp.ImprimirLinea "  " & lStrLinea, , , eIzquierda
+                                        CtrImp.ImprimirLinea ""
+                                    Next lIntContador
+                                    
+                                    If pObjentidad.Pago.Mensaje <> "NULL" Then
+                                        CtrImp.ImprimirLinea ""
+                                        CtrImp.ImprimirLinea ""
+                                        CtrImp.DefinirFuente "Arial", 9, True
+                                        CtrImp.ImprimirLinea pObjentidad.Pago.Mensaje, , , eCentrado
+                                    End If
+                    
+                                    CtrImp.ImprimirLinea ""
+                                    CtrImp.ImprimirSeparador
+                End If
+        End Select 'aqui
+    End If
+
+ 
+    
+    ImprimirCalendariodePagos = True
+    Exit Function
+Catch:
+    mobjAdm.CtrErr.Mostrar Me, App, Err, False
+End Function
+Private Function ImprimirDatosContacto() As Boolean
+On Error GoTo Catch
+    ImprimirDatosContacto = False
+    mstrMetodo = "ImprimirDatosContacto() (Ctr)"
+    mstrAccion = "Imprimiendo datos de contacto de Presta Prenda"
+    
+    If Pais = 1 Then
+        CtrImp.DefinirFuente "Arial", 9, True
+        CtrImp.ImprimirLinea ""
+        CtrImp.ImprimirLinea "Para dudas y comentarios:", , , eCentrado
+        CtrImp.DefinirFuente "Arial", 7, True
+        CtrImp.ImprimirLinea ""
+        CtrImp.DefinirFuente "Arial", 9, True
+        CtrImp.ImprimirLinea "www.prestaprenda.com.mx", , , eCentrado
+        CtrImp.ImprimirLinea "01800 0500 676", , , eCentrado
+        CtrImp.ImprimirLinea ""
+    End If
+    ImprimirDatosContacto = True
+    Exit Function
+Catch:
+    mobjAdm.CtrErr.Mostrar Me, App, Err, False
+End Function
+    
+    
+    Private Function ImprimirLeyendaExtemporaneo(pObjentidad As Object) As Boolean
+    On Error GoTo Catch
+        ImprimirLeyendaExtemporaneo = False
+         
+         Dim lStrImagen As String
+         
+        
+        mstrMetodo = "ImprimirLeyendaExtemporaneo() (Ctr)"
+        mstrAccion = "Imprimiendo Leyenda de Almacenaje/VentaExtemporanea"
+        
+        If Pais = 1 Then
+            
+            CtrImp.ImprimirLinea ""
+            CtrImp.ImprimirLinea "Línea Azteca 01-800-040-7777", , , eCentrado
+            CtrImp.ImprimirLinea ""
+            CtrImp.ImprimirLinea "BANCO AZTECA S.A", , , eCentrado
+            CtrImp.ImprimirLinea "INSTITUCIÓN DE BANCA MÚLTIPLE ", , , eCentrado
+            CtrImp.ImprimirLinea "BAI-020523-6YB", , , eCentrado
+            CtrImp.ImprimirLinea "Av. FF CC de Río Frío No. 41-A10 ", , , eCentrado
+            CtrImp.ImprimirLinea "FRACC. IND. DEL MORAL, C.P. 09010, México D.F.", , , eCentrado
+            CtrImp.ImprimirLinea ""
+        End If
+        lStrImagen = mobjAdm.CtrPar.ObtenerParametro(3665)
+        CtrImp.ImprimirImagen lStrImagen, CtrImp.PosicionY, 1350, eCentrado
+        CtrImp.ImprimirLinea ""
+        ImprimirLeyendaExtemporaneo = True
+        Exit Function
+Catch:
+        mobjAdm.CtrErr.Mostrar Me, App, Err, False
+    End Function
+
+
+         'Para la Liquidacion Tipo Cartera 20
+         
+    Private Function ImprimirLeyendaLiquidacion() As Boolean
+    On Error GoTo Catch
+        ImprimirLeyendaLiquidacion = False
+        mstrMetodo = "ImprimirLeyendaLiquidacion() (Ctr)"
+        mstrAccion = "Imprimiendo Leyenda de Liquidacion"
+        
+        If Pais = 1 Then
+            If (MejorasTicketHabilitada = True) Then
+            CtrImp.DefinirFuente "Arial", 6, False
+            ElseIf (MejorasTicketHabilitada = False) Then
+            CtrImp.DefinirFuente "Arial Black", 7, False
+            End If
+            CtrImp.ImprimirLinea ""
+            If (MejorasTicketHabilitada = True) Then
+            CtrImp.ImprimirLinea "La liquidación del  Crédito, no genera ningún", , , eCentrado
+            ElseIf (MejorasTicketHabilitada = False) Then
+             CtrImp.ImprimirLinea "La liquidación de su préstamo, no genera ningún", , , eCentrado
+            End If
+            CtrImp.ImprimirLinea "tipo de comisión o penalización, por lo que el", , , eCentrado
+            CtrImp.ImprimirLinea "presente implica el finiquito correspondiente, así", , , eCentrado
+            CtrImp.ImprimirLinea "como la terminación de la relación contractual.", , , eCentrado
+            
+            If (MejorasTicketHabilitada = True) Then
+            CtrImp.ImprimirLinea "Con la recepción de este comprobante el cliente acepta que los ", , , eCentrado
+            CtrImp.ImprimirLinea "datos aquí contenidos son correctos.", , , eCentrado
+            CtrImp.ImprimirLinea "www.prestaprenda.com.mx", , , eCentrado
+            CtrImp.ImprimirLinea "01800 0500 676", , , eCentrado
+            End If
+            
+            CtrImp.ImprimirLinea ""
+        End If
+        
+        ImprimirLeyendaLiquidacion = True
+        Exit Function
+Catch:
+        mobjAdm.CtrErr.Mostrar Me, App, Err, False
+    End Function
+    
+    
+     Private Function ImprimirLeyendaAbono(pObjentidad As Object) As Boolean
+    On Error GoTo Catch
+        ImprimirLeyendaAbono = False
+        mstrMetodo = "ImprimirLeyendaAbono() (Ctr)"
+        mstrAccion = "Imprimiendo Leyenda de Abono"
+        
+        If Pais = 1 Then
+            
+            CtrImp.ImprimirLinea ""
+            CtrImp.ImprimirLinea "Con la recepción de este comprobante el depositante ", , , eIzquierda
+            CtrImp.ImprimirLinea "acepta que los datos aquí contenidos son correctos.", , , eIzquierda
+            CtrImp.ImprimirLinea ""
+            CtrImp.ImprimirLinea ""
+            CtrImp.ImprimirLinea "Para Dudas y comentarios", , , eCentrado
+            CtrImp.ImprimirLinea "www.prestaprenda.com.mx", , , eCentrado
+            CtrImp.ImprimirLinea "01800 0500 676", , , eCentrado
+            CtrImp.ImprimirLinea ""
+        End If
+        
+        ImprimirLeyendaAbono = True
+        Exit Function
+Catch:
+        mobjAdm.CtrErr.Mostrar Me, App, Err, False
+    End Function
+     
+    Private Function ImprimirPiedePagina(pObjentidad As Object) As Boolean
+    On Error GoTo Catch
+        ImprimirPiedePagina = False
+        mstrMetodo = "ImprimirPiedePaginaMejoraTicket()"
+        mstrAccion = "Imprimiendo los datos del encabezado del ticket"
+        Dim ObtenerCodigo As Boolean
+        Dim lStrImagen As String
+        
+        ObtenerCodigo = CodigoBarras.CrearCodigo(pObjentidad.Pago.NumTransaccion, "CodigoBarras", True, "128A", 500, 15)
+        
+        If ObtenerCodigo Then
+            lStrImagen = Environ$("tmp") + "\CodigoBarras.bmp" '"C:\TMP\ImgEncLog.BMP"
+        
+        End If
+        
+        CtrImp.DefinirFuente "Arial", 10, True
+        
+           If (MejorasTicketHabilitada = True) Then
+            If (pObjentidad.Pago.TipoOperacionCartera = 16 Or pObjentidad.Pago.TipoOperacionCartera = 9 Or pObjentidad.Pago.TipoOperacionCartera = 20 Or pObjentidad.Pago.TipoOperacionCartera = 17 Or pObjentidad.Pago.TipoOperacionCartera = 23) Then
+                CtrImp.ImprimirImagen lStrImagen, CtrImp.PosicionY, 1300, 8.5, 1.5
+                CtrImp.ImprimirLinea ""
+                CtrImp.ImprimirLinea "Número de Operación: " & pObjentidad.Pago.NumTransaccion, , , eCentrado
+            End If
+     
+        If (pObjentidad.Pago.TipoOperacionCartera = 15 Or pObjentidad.Pago.TipoOperacionCartera = 36) Then
+        
+            ImprimirFirmas pObjentidad
+            CtrImp.ImprimirLinea "Número de Operación: " & pObjentidad.Pago.NumTransaccion, , , eCentrado
+            CtrImp.ImprimirLinea "Número de Autorización: " & pObjentidad.Pago.NumTransaccion, , , eCentrado
+            ImprimirLeyendaExtemporaneo pObjentidad
+        End If
+            CtrImp.ImprimirLinea "Suc. " & Trim(mobjAdm.Control.IdTienda) & " " & Trim(mobjAdm.Control.NombreTienda), , , eCentrado
+            CtrImp.DefinirFuente "Arial", 8, True
+            CtrImp.ImprimirLinea "Plaza." & Trim(mobjAdm.Tienda.Poblacion) & ",", , , eCentrado
+            CtrImp.ImprimirLinea Trim(mobjAdm.Tienda.Estado), , , eCentrado
+            CtrImp.ImprimirLinea "Fecha: " & Format(Now, "DD/MM/YYYY H:mm"), , , eCentrado
+            CtrImp.ImprimirLinea "Le atendió: " & Trim(mobjAdm.Empleado.Nombre) & " " & Trim(mobjAdm.Empleado.Apaterno) & " " & Trim(mobjAdm.Empleado.Amaterno), , , eCentrado
+            
+            CtrImp.ImprimirLinea ""
+        End If
+        ImprimirPiedePagina = True
+        Exit Function
+Catch:
+        mobjAdm.CtrErr.Mostrar Me, App, Err, False
+    End Function
+    
+    
+    Private Function ImprimirPiedePaginaNormal(pObjentidad As Object) As Boolean
+    On Error GoTo Catch
+        ImprimirPiedePaginaNormal = False
+        mstrMetodo = "ImprimirPiedePaginaMejoraTicket()"
+        mstrAccion = "Imprimiendo los datos del encabezado del ticket"
+        Dim ObtenerCodigo As Boolean
+        Dim lStrImagen As String
+        
+        ObtenerCodigo = CodigoBarras.CrearCodigo(pObjentidad.Pago.NumTransaccion, "CodigoBarras", True, "128A", 500, 15)
+        
+        If ObtenerCodigo Then
+            lStrImagen = Environ$("tmp") + "\CodigoBarras.bmp" '"C:\TMP\ImgEncLog.BMP"
+        
+        End If
+        
+        CtrImp.DefinirFuente "Arial", 10, True
+        
+       
+      
+            CtrImp.DefinirFuente "Arial", 10, True
+            CtrImp.ImprimirLinea "Suc. " & Trim(mobjAdm.Control.IdTienda) & " " & Trim(mobjAdm.Control.NombreTienda), , , eCentrado
+            CtrImp.DefinirFuente "Arial", 9, True
+            CtrImp.ImprimirLinea "Tel.: " & mobjAdm.Tienda.Telefono & "Fecha: " & Format(Now, "DD/MM/YYYY"), , , eCentrado
+            CtrImp.DefinirFuente "Arial", 8, True
+            CtrImp.ImprimirLinea "Le atendió: " & Trim(mobjAdm.Empleado.Nombre) & " " & Trim(mobjAdm.Empleado.Apaterno) & " " & Trim(mobjAdm.Empleado.Amaterno), , , eCentrado
+            CtrImp.ImprimirLinea ""
+            CtrImp.ImprimirLinea "Número de Operación: " & pObjentidad.Pago.NumTransaccion, , , eCentrado
+            CtrImp.ImprimirLinea ""
+            CtrImp.ImprimirImagen lStrImagen, CtrImp.PosicionY, 1300, 8.5, 1.5
+            CtrImp.ImprimirLinea ""
+           If (pObjentidad.Pago.TipoOperacionCartera = 15) Then
+              'ImprimirLeyendaExtemporaneo ImprimirLeyendaExtemporaneo
+             'para el logo de banco
+             lStrImagen = mobjAdm.CtrPar.ObtenerParametro(3665)
+             CtrImp.ImprimirImagen lStrImagen, CtrImp.PosicionY, 1600, eCentrado
+            End If
+      
+        ImprimirPiedePaginaNormal = True
+        Exit Function
+Catch:
+        mobjAdm.CtrErr.Mostrar Me, App, Err, False
+    End Function
+    
+    Private Function ImprimirFirmas(pObjentidad As Object) As Boolean
+    On Error GoTo Catch
+        ImprimirFirmas = False
+        mstrMetodo = "ImprimirFirmas()"
+        mstrAccion = "Imprimiendo líneas para firma de Cajero y Cliente"
+        
+        If MejorasTicketHabilitada = True Then
+            CtrImp.DefinirFuente "Arial", 10, True
+            Select Case pObjentidad.Pago.TopCaja
+                Case 43, 46, 55, 537, 539, 618, 692, 787, 810
+                    
+                     CtrImp.DefinirFuente "Arial", 6, True
+                     CtrImp.ImprimirLinea "_____________________", , , eCentrado
+                     
+                     CtrImp.ImprimirLinea ""
+                     If (pObjentidad.Pago.TipoOperacionCartera = 15) Then
+                         CtrImp.ImprimirLinea "Firma del Cajero", , , eCentrado
+                     Else
+                           CtrImp.ImprimirLinea "Firma del Acreditado", , , eCentrado
+                     End If
+                     
+            End Select
+            If (pObjentidad.Pago.TipoOperacionCartera = 20) Then
+                 ImprimirLeyendaLiquidacion
+         
+                    
+            ElseIf (pObjentidad.Pago.TipoOperacionCartera = 9 Or pObjentidad.Pago.TipoOperacionCartera = 43 Or pObjentidad.Pago.TipoOperacionCartera = 16) Then
+                ImprimirFooter pObjentidad
+            End If
+                
+        
+        Else
+            CtrImp.DefinirFuente "Arial", 10, True
+            Select Case pObjentidad.Pago.TopCaja
+                Case 43, 46, 55, 537, 539, 618, 692, 787, 810
+                    CtrImp.ImprimirFirma (2)
+            End Select
+            
+        End If
+          ImprimirFirmas = True
+        Exit Function
+Catch:
+        mobjAdm.CtrErr.Mostrar Me, App, Err, False
+    End Function
+    
+    'Para los tipo de cartera 9 y 43 Abono por Refrendo y Refrendo Extemporaneo
+    Private Function ImprimirFooter(pObjentidad As Object) As Boolean
+    On Error GoTo Catch
+    CtrImp.DefinirFuente "Arial", 6, False
+    CtrImp.ImprimirLinea "El importe del crédito dispuesto hasta por la cantidad establecida ", , , eCentrado
+    CtrImp.ImprimirLinea "en el presente ticket, se encuentra garantizado con la Garantía ", , , eCentrado
+    CtrImp.ImprimirLinea "Prendaria constituida en los términos y condiciones establecidos ", , , eCentrado
+    CtrImp.ImprimirLinea "por el Garante Prendario en el Contrato de Crédito, celebrado ", , , eCentrado
+    CtrImp.ImprimirLinea "con Banco Azteca, S.A. Institución de Banca Múltiple.", , , eCentrado
+    CtrImp.ImprimirLinea "Con la recepción de este comprobante el cliente acepta que los ", , , eCentrado
+    CtrImp.ImprimirLinea "datos aquí contenidos son correctos.", , , eCentrado
+    CtrImp.ImprimirLinea "www.prestaprenda.com.mx", , , eCentrado
+    CtrImp.ImprimirLinea "01800 0500 676", , , eCentrado
+          
+        ImprimirFooter = True
+        Exit Function
+Catch:
+        mobjAdm.CtrErr.Mostrar Me, App, Err, False
+    End Function
+    
+    'Para la Liquidacion Tipo Cartera 20
+    Private Function ImprimirAclaracionesLiquidacion(pObjentidad As Object) As Boolean
+    On Error GoTo Catch
+    ImprimirAclaracionesLiquidacion = False
+    mstrMetodo = "ImprimirAclaracionesReclamaciones"
+    mstrAccion = "Imprimiendo bloque de Aclaraciones y Reclamaciones del Crédito"
+    
+     CtrImp.ImprimirLinea ""
+     CtrImp.ImprimirSeparador
+     
+     Select Case pObjentidad.Pago.TipoOperacionCartera
+        Case 20
+        mstrAccion = "Colocando Aclaraciones y Reclamaciones"
+        CtrImp.ImprimirLinea ""
+        'Descripcion = "Aclaraciones y Reclamaciones"
+        
+   
+        'CtrImp.ImprimirLinea Descripcion, , , eCentrado
+        CtrImp.DefinirFuente "Arial", 7, True
+        CtrImp.ImprimirLinea "Recuerda recuperar tus prendas en la sucursal del Banco ", , , eCentrado
+        CtrImp.ImprimirLinea "donde se originó el crédito dentro de las 24 (veinticuatro) ", , , eCentrado
+        CtrImp.ImprimirLinea "horas posteriores a la liquidación del mismo, en caso ", , , eCentrado
+        CtrImp.ImprimirLinea "contrario, pagarás al Depositario gastos de almacenaje de ", , , eCentrado
+        CtrImp.ImprimirLinea "conformidad con los términos establecidos en el contrato ", , , eCentrado
+        CtrImp.ImprimirLinea "de crédito.", , , eCentrado
+        CtrImp.ImprimirSeparador
+      
+        
+          
+     End Select
+        
+        ImprimirAclaracionesLiquidacion = True
+        
+    Exit Function
+    
+Catch:
+        mobjAdm.CtrErr.Mostrar Me, App, Err, False
+    End Function
+    
+    
+    Private Function AlinearPrecio(ByVal pstrCadena As String, Optional ByVal pintLongitud As Integer = 15, Optional ByVal pbolIncluyeSimbolo As Boolean = True) As String
+    On Error GoTo Catch
+        mstrMetodo = "AlinearPrecio()"
+        mstrAccion = "Alineando los datos del ticket"
+    Dim lstrCadenaAux As String
+    Dim lstrEspacios As String
+    lstrEspacios = ""
+        If pbolIncluyeSimbolo Then
+            If Int(Val(pstrCadena)) = Val(pstrCadena) Then
+                lstrCadenaAux = mobjAdm.CtrCon.Monedas.Seleccionar(Divisa).Signo & Format(pstrCadena, "###,###.00")
+            Else
+                lstrCadenaAux = Format(pstrCadena, "###,###.00")
+            End If
+        Else
+            lstrCadenaAux = pstrCadena
+        End If
+        If (pintLongitud - Len(lstrCadenaAux)) > 0 Then
+            lstrEspacios = Space(pintLongitud - Len(lstrCadenaAux))
+        End If
+        AlinearPrecio = lstrEspacios & lstrCadenaAux
+        Exit Function
+Catch:
+        mobjAdm.CtrErr.Mostrar Me, App, Err, False
+    End Function
+    
+    Private Sub LimpiarVariables()
+    On Error GoTo Catch
+        mstrMetodo = "LimpiarVariables()"
+        mstrAccion = "Limpiando los datos del ticket"
+    
+        Codigo = ""
+        Descripcion = ""
+        Monto = ""
+        
+        EsAptoReformulacion = False
+        ImporteRemanente = 0
+        ReformulacionHabilitada = 0
+        
+        EsBoletaReformulada = False
+        BoletaReformulada = ""
+        BoletaAnterior = ""
+        IdEstatusReformulacion = ""
+        PrestamoAnterior = 0
+        PrestamoReformulado = 0
+        SaldoAnterior = 0
+        TirBoletaReformulada = 0
+        TirBoletaAnterior = 0
+        
+        IdSucursalResguardoBoleta = 0
+        SucursalResguardoBoleta = 0
+        ImporteLiquidacionBoletaAnterior = 0
+        
+        MejorasTicketHabilitada = False
+        ResultadoTipoProceso = 0
+        NumeroSemana = ""
+        Porcentaje = ""
+        CAT = ""
+        TIA = ""
+        TIAMoratoria = ""
+    
+        Exit Sub
+Catch:
+        mobjAdm.CtrErr.Mostrar Me, App, Err, False
+    End Sub
+    
+    Private Sub ObtenerCalendarioPagos(pObjentidad As Object)
+    On Error GoTo Catch
+        mstrMetodo = "ObtenerCalendarioPagos()"
+        mstrAccion = "Obteniendo calendario de pagos"
+        Dim lStrParametro As String
+        If Pais = 2 Then
+            lStrParametro = "/ObtenerCalendarioPagos?astrBoleta="
+        Else
+            lStrParametro = "ObtenerCalendarioPagos?astrBoleta="
+        End If
+        lobjAbd.lstrSql = mobjAdm.CtrPar.ObtenerParametro(1571) & mobjAdm.CtrPar.ObtenerParametro(1575) & lStrParametro
+        lobjAbd.lstrSql = lobjAbd.lstrSql & pObjentidad.Pago.Boleta
+    
+        lobjAbd.ObtenerCalendarioPagos Me
+    
+        Exit Sub
+Catch:
+        mobjAdm.CtrErr.Mostrar Me, App, Err, False
+    End Sub
+    
+    'Private Sub ObtenerDatosCliente(pObjentidad As Object)
+    'On Error GoTo Catch
+    '    mstrMetodo = "ObtenerDatosCliente()"
+    '    mstrAccion = "Obteniendo datos del Cliente"
+    '
+    '    lobjAbd.lstrSql = mobjAdm.CtrPar.ObtenerParametro(1571) & mobjAdm.CtrPar.ObtenerParametro(1588) & "DevuelveDireccion?astrNumBoleta="
+    '    lobjAbd.lstrSql = lobjAbd.lstrSql & pObjentidad.Pago.Boleta
+    '
+    '    lobjAbd.ObtenerDatosCliente Me
+    '
+    '    Exit Sub
+    'Catch:
+    '    mobjAdm.CtrErr.Mostrar Me, App, Err, False
+    'End Sub
+    
+    Private Function ImprimirAvisoPrivacidad(pObjentidad As Object) As Boolean
+    On Error GoTo Catch
+        ImprimirAvisoPrivacidad = False
+        mstrMetodo = "ImprimirAvisoPrivacidad()"
+        mstrAccion = "Imprimiendo aviso de privacidad"
+        
+        If (Pais = 1 And pObjentidad.Boleta.idProducto <> 11) Then
+            'CtrImp.ImprimirLinea ""
+            CtrImp.DefinirFuente "Arial", 6, True
+            CtrImp.ImprimirLinea "AVISO DE PRIVACIDAD", , , eCentrado
+            CtrImp.DefinirFuente "courier new", 6, False
+            CtrImp.ImprimirLinea "Sus Datos Personales dados a Banco Azteca, S.A., serán", , , eCentrado
+            CtrImp.ImprimirLinea "utilizados para fines de identificación, operación,", , , eCentrado
+            CtrImp.ImprimirLinea "administración y comercialización, pudiéndose transferir", , , eCentrado
+            CtrImp.ImprimirLinea "a terceros. Insurgentes Sur 3579, T 1, 5o Piso,", , , eCentrado
+            CtrImp.ImprimirLinea "Tlalpan la Joya, el texto completo del aviso en", , , eCentrado
+            CtrImp.ImprimirLinea "www.bancoazteca.com.mx", , , eCentrado
+        ElseIf (Pais = 2 And pObjentidad.Boleta.idProducto <> 11) Then
+            CtrImp.ImprimirLinea ""
+            CtrImp.DefinirFuente "Arial", 6, True
+            CtrImp.ImprimirLinea "AVISO DE PRIVACIDAD", , , eCentrado
+            CtrImp.DefinirFuente "courier new", 6, False
+            CtrImp.ImprimirLinea "Sus Datos Personales dados a Banco Azteca de Guatemala,", , , eCentrado
+            CtrImp.ImprimirLinea "S.A., serán utilizados para fines de identificación,", , , eCentrado
+            CtrImp.ImprimirLinea "operación y administración, pudiéndose transferir a", , , eCentrado
+            CtrImp.ImprimirLinea "terceros. Avenida Reforma 9-00 zona 10", , , eCentrado
+        End If
+    
+        CtrImp.DefinirFuente "Arial", 6, True
+        CtrImp.ImprimirLinea ""
+        
+        ImprimirAvisoPrivacidad = True
+        Exit Function
+Catch:
+        mobjAdm.CtrErr.Mostrar Me, App, Err, False
+    End Function
+    
+    Private Function AjustarTexo(pstrTexto As String, pintLongitud As Integer) As String()
+    On Error GoTo Catch
+        mstrMetodo = "AjustarTexo(pstrTexto() As String, pintLongitud As Integer) As String()"
+        mstrAccion = "Ajustando texto en varias líneas de acuerdo al tamaño enviado"
+        
+        Dim lstrTextos() As String
+        Dim lstrTextosFinal() As String
+        Dim lstrTextoFinal As String
+        Dim lstrTexto As String
+        Dim lstrTextoTmp As String
+        Dim lIntContador As Integer
+        Dim lintAcumulador As Integer
+        If Trim(pstrTexto) = "" Then pstrTexto = "- - - - - -"
+        lstrTextos = Split(pstrTexto, " ")
+        lintAcumulador = 0
+        For lIntContador = 0 To UBound(lstrTextos)
+            lstrTextoTmp = lstrTexto & "" & lstrTextos(lIntContador) & " "
+            If (Len(LTrim(lstrTextoTmp)) <= pintLongitud) Then
+                lstrTexto = LTrim(lstrTextoTmp)
+            Else
+                lstrTextoFinal = lstrTextoFinal & lstrTexto & "|"
+                'lstrTextoFinal(lintAcumulador) = lstrTexto
+                'lintAcumulador = lintAcumulador + 1
+                lstrTexto = ""
+                lIntContador = lIntContador - 1
+            End If
+            If lstrTexto <> "" And lIntContador = UBound(lstrTextos) Then lstrTextoFinal = lstrTextoFinal & lstrTexto & "|"
+        Next lIntContador
+        lstrTextosFinal = Split(lstrTextoFinal, "|")
+        AjustarTexo = lstrTextosFinal
+        
+        Exit Function
+Catch:
+        mobjAdm.CtrErr.Mostrar Me, App, Err, False
+    End Function
+    
+    Private Function ObtenerDatosCliente(pObjentidad As Object) As Boolean
+        On Error GoTo Catch
+        ObtenerDatosCliente = False
+        mstrMetodo = "ObtenerDatosCliente() "
+        mstrAccion = "Obteniendo datos del Cliente en Base de Datos de PrestaPrenda (Ctr)"
+        
+        If pObjentidad.Pago.TipoOperacionCartera = 145 Then
+            lobjAbd.IdTipoOperacionComisionTarjeta = pObjentidad.Pago.TipoOperacionCartera
+            lobjAbd.lstrSql = mobjAdm.CtrPar.ObtenerParametro(1571) & mobjAdm.CtrPar.ObtenerParametro(2195) & "BuscarClientePrendarioCU?astrPaisCU="
+            lobjAbd.lstrSql = lobjAbd.lstrSql & pObjentidad.Pago.PaisCU & "&astrCanalCU=" & pObjentidad.Pago.CanalCU
+            lobjAbd.lstrSql = lobjAbd.lstrSql & "&astrSucursalCU=" & pObjentidad.Pago.SucursalCU & "&astrFolioCU="
+            lobjAbd.lstrSql = lobjAbd.lstrSql & pObjentidad.Pago.FolioCU & "&astrIdPais=" & mobjAdm.Pais.IdPais
+            lobjAbd.lstrSql = lobjAbd.lstrSql & "&astrIdCanal=" & mobjAdm.Canal.IdCanal & "&astrIdSucursal="
+            lobjAbd.lstrSql = lobjAbd.lstrSql & mobjAdm.Tienda.IdTienda & "&astrIdUsuario=" & Mid(mobjAdm.Sesion.IdUsuario, 2)
+            lobjAbd.lstrSql = lobjAbd.lstrSql & "&astrEstacionTrabajo=" & Mid(mobjAdm.Sesion.IdUsuario, 2)
+        Else
+            lobjAbd.lstrSql = mobjAdm.CtrPar.ObtenerParametro(1571) & mobjAdm.CtrPar.ObtenerParametro(1588)
+            lobjAbd.lstrSql = lobjAbd.lstrSql & "ConsultaClientePorBoleta?astrNumBoleta=" & pObjentidad.Pago.Boleta
+        End If
+        
+        ObtenerDatosCliente = lobjAbd.ObtenerDatosCliente(Me)
+        
+        Exit Function
+Catch:
+        mobjAdm.CtrMen.Ocultar
+        mobjAdm.CtrErr.Mostrar Nothing, App, Err, False
+    End Function
+    
+    Private Function ConstruirPagare(pObjentidad As Object) As Boolean
+    On Error GoTo Catch
+        ConstruirPagare = False
+        mstrMetodo = "ConstruirPagare()"
+        mstrAccion = "Construyendo el pagaré libre de protesto (Ctr)"
+        Dim lIntEdad As Integer
+        Dim lStrFechaActual As String
+        Dim lStrFecVencimiento As String
+        Dim lStrTasaEfectivalLetras As String
+        Dim lStrTasaMoraLetras As String
+        Dim lStrCadenaTemporal As String
+        Dim lStrCadenaImprimir() As String
+        Dim lStrNombreCompleto As String
+        Dim lIntContador As Integer
+        With DatosClientes
+            lStrNombreCompleto = .Seleccionar(1).Nombre & " " & .Seleccionar(1).ApePaterno & " " & .Seleccionar(1).ApeMaterno
+            lIntEdad = CalcularEdad(.Seleccionar(1).FecNacimiento)
+            lStrFechaActual = ConvertirFecha(Now)
+            lStrFecVencimiento = UCase(ConvertirFecha(pObjentidad.Pago.FechaVencimiento))
+            lStrTasaEfectivalLetras = UCase(ConvertirALetras(.Seleccionar(1).TasaEfectiva))
+            lStrTasaMoraLetras = UCase(ConvertirALetras(.Seleccionar(1).TasaMoratorio))
+            
+            lStrCadenaTemporal = "En la Ciudad de Guatemala, hoy " & lStrFechaActual & ". Yo, " & lStrNombreCompleto
+            lStrCadenaTemporal = lStrCadenaTemporal & " de " & lIntEdad & " años, " & .Seleccionar(1).Profesion
+            lStrCadenaTemporal = lStrCadenaTemporal & ", " & .Seleccionar(1).Nacionalidad & ", " & .Seleccionar(1).EstadoCivil
+            lStrCadenaTemporal = lStrCadenaTemporal & ", del domicilio de " & .Seleccionar(1).Calle & " " & .Seleccionar(1).NumExterior
+            lStrCadenaTemporal = lStrCadenaTemporal & " " & .Seleccionar(1).NumInterior & ", " & .Seleccionar(1).Colonia
+            lStrCadenaTemporal = lStrCadenaTemporal & " " & .Seleccionar(1).Poblacion & ", " & .Seleccionar(1).Estado
+            lStrCadenaTemporal = lStrCadenaTemporal & " " & .Seleccionar(1).CP & ", con Documento Personal de Identificación número "
+            lStrCadenaTemporal = lStrCadenaTemporal & " " & .Seleccionar(1).FolioIdentificacion & ", " & "me obligo y prometo "
+            lStrCadenaTemporal = lStrCadenaTemporal & "incondicionalmente a pagar la suma adeudada de Q." & Format(pObjentidad.Pago.ImportePrestamo, "###,###.#0")
+            lStrCadenaTemporal = lStrCadenaTemporal & ", a la entidad BANCO AZTECA DE GUATEMALA, SOCIEDAD ANÓNIMA, mediante un solo pago de "
+            lStrCadenaTemporal = lStrCadenaTemporal & "Q." & Format(pObjentidad.Pago.SaldoCapital + pObjentidad.Pago.SaldoInteres, "###,###.#0")
+            lStrCadenaTemporal = lStrCadenaTemporal & " el día " & lStrFecVencimiento & ", el cual incluye capital e intereses, que serán aplicados "
+            lStrCadenaTemporal = lStrCadenaTemporal & " sobre una tasa efectiva anual equivalente de " & UCase(lStrTasaEfectivalLetras)
+            lStrCadenaTemporal = lStrCadenaTemporal & " por ciento (" & .Seleccionar(1).TasaEfectiva & "%) pudiendo cancelar el capital "
+            lStrCadenaTemporal = lStrCadenaTemporal & " e intereses generados a la fecha de pago en cualquier momento."
+            lStrCadenaImprimir() = JustificarTexto(lStrCadenaTemporal, 56)
+                                                            
+            CtrImp.ImprimirLinea ""
+            CtrImp.DefinirFuente "Arial", 6, True
+            CtrImp.ImprimirLinea "PAGARÉ LIBRE DE PROTESTO", , , eCentrado
+            CtrImp.ImprimirLinea ""
+            CtrImp.ImprimirLinea "No. PRÉSTAMO:                " & pObjentidad.DatosProceso.Pedido, , , eIzquierda
+            CtrImp.ImprimirLinea "CLIENTE ÚNICO:               " & pObjentidad.Pago.PaisCU & " - " & pObjentidad.Pago.CanalCU & " - " & pObjentidad.Pago.SucursalCU & " - " & pObjentidad.Pago.FolioCU, , , eIzquierda
+            CtrImp.ImprimirLinea ""
+            CtrImp.DefinirFuente "courier new", 6, False
+            For lIntContador = 0 To UBound(lStrCadenaImprimir)
+                CtrImp.ImprimirLinea lStrCadenaImprimir(lIntContador), , , eIzquierda
+            Next lIntContador
+            
+            lStrCadenaTemporal = "I. INTERESES MORATORIOS: En caso de incumplimiento en el pago, se devengarán intereses moratorios a razón del "
+            lStrCadenaTemporal = lStrCadenaTemporal & lStrTasaMoraLetras & " por ciento (" & .Seleccionar(1).TasaMoratorio & "%) semanal, "
+            lStrCadenaTemporal = lStrCadenaTemporal & "calculado sobre el monto del préstamo incluyendo capital e interés. Los intereses "
+            lStrCadenaTemporal = lStrCadenaTemporal & "moratorios son sin perjuicios del derecho del acreedor de ejecutar esta obligación."
+            lStrCadenaImprimir() = JustificarTexto(lStrCadenaTemporal, 56)
+            CtrImp.ImprimirLinea ""
+            For lIntContador = 0 To UBound(lStrCadenaImprimir)
+                CtrImp.ImprimirLinea lStrCadenaImprimir(lIntContador), , , eIzquierda
+            Next lIntContador
+            
+            lStrCadenaTemporal = "II. LUGAR DE PAGO: El pago se deberá efectuar en Avenida Reforma nueve guión cero cero Zona nueva Plaza Panamericana, "
+            lStrCadenaTemporal = lStrCadenaTemporal & "lugar donde se encuentran ubicadas las oficinas centrales de BANCO AZTECA DE GUATEMALA, S.A. o "
+            lStrCadenaTemporal = lStrCadenaTemporal & "en el lugar que el Banco indique, sin necesidad de cobro previo o requerimiento alguno."
+            lStrCadenaImprimir() = JustificarTexto(lStrCadenaTemporal, 56)
+            CtrImp.ImprimirLinea ""
+            For lIntContador = 0 To UBound(lStrCadenaImprimir)
+                CtrImp.ImprimirLinea lStrCadenaImprimir(lIntContador), , , eIzquierda
+            Next lIntContador
+            
+            lStrCadenaTemporal = "III. EFECTOS PROCESALES: Expresamente manifiesto que cualquier controversia derivada del incumplimiento del presente "
+            lStrCadenaTemporal = lStrCadenaTemporal & "título de crédito, serán competentes los tribunales del departamento de Guatemala, renunciando "
+            lStrCadenaTemporal = lStrCadenaTemporal & "para el efecto de cualquier otro domicilio que pudiere corresponder al deudor."
+            lStrCadenaImprimir() = JustificarTexto(lStrCadenaTemporal, 56)
+            CtrImp.ImprimirLinea ""
+            For lIntContador = 0 To UBound(lStrCadenaImprimir)
+                CtrImp.ImprimirLinea lStrCadenaImprimir(lIntContador), , , eIzquierda
+            Next lIntContador
+            
+            lStrCadenaTemporal = "IV. El presente pagaré tendrá vigencia a partir de la fecha de desembolso del préstamo."
+            lStrCadenaImprimir() = JustificarTexto(lStrCadenaTemporal, 56)
+            CtrImp.ImprimirLinea ""
+            For lIntContador = 0 To UBound(lStrCadenaImprimir)
+                CtrImp.ImprimirLinea lStrCadenaImprimir(lIntContador), , , eIzquierda
+            Next lIntContador
+            
+            CtrImp.ImprimirLinea ""
+            CtrImp.ImprimirLinea ""
+            CtrImp.ImprimirLinea ""
+            CtrImp.ImprimirLinea ""
+            CtrImp.DefinirFuente "Arial", 6, True
+            CtrImp.ImprimirLinea "----------------------------------------", , , eCentrado
+            CtrImp.ImprimirLinea lStrNombreCompleto, , , eCentrado
+            CtrImp.ImprimirLinea "NOMBRE CLIENTE", , , eCentrado
+        End With
+    
+        ConstruirPagare = True
+        Exit Function
+Catch:
+        'Si hay un error se debe ignorar
+    End Function
+    
+    Private Function CalcularEdad(pFecNacimiento As Date, Optional pUnidad As Integer = 1) As Integer
+        On Error GoTo Catch
+        Dim lStrUnidad As String
+        CalcularEdad = 0
+        mstrMetodo = "CalcularEdad() "
+        mstrAccion = "Calculando la edad tomando la fecha de nacimiento (Ctr)"
+        
+        Select Case pUnidad
+        Case 1 'Años
+            lStrUnidad = "yyyy"
+        Case 2 'Meses
+            lStrUnidad = "m"
+        Case 3 'Días
+            lStrUnidad = "d"
+        Case Else
+            lStrUnidad = "yyyy"
+        End Select
+        
+        CalcularEdad = Int(DateDiff(lStrUnidad, pFecNacimiento, Now))
+        
+        Exit Function
+Catch:
+        'Si hay un error se debe ignorar
+    End Function
+    
+    Private Function ConvertirFecha(pFecha As Date) As String
+        On Error GoTo Catch
+        ConvertirFecha = ""
+        Dim lIntMes As Integer
+        Dim lstrMes As String
+        Dim lStrNuevaFecha As String
+        mstrMetodo = "ConvertirFecha() "
+        mstrAccion = "Formateando la fecha a Long Date (Ctr)"
+        
+        lIntMes = Month(pFecha)
+        Select Case lIntMes
+        Case 1
+            lstrMes = "Enero"
+        Case 2
+            lstrMes = "Febrero"
+        Case 3
+            lstrMes = "Marzo"
+        Case 4
+            lstrMes = "Abril"
+        Case 5
+            lstrMes = "Mayo"
+        Case 6
+            lstrMes = "Junio"
+        Case 7
+            lstrMes = "Julio"
+        Case 8
+            lstrMes = "Agosto"
+        Case 9
+            lstrMes = "Septiembre"
+        Case 10
+            lstrMes = "Octubre"
+        Case 11
+            lstrMes = "Noviembre"
+        Case 12
+            lstrMes = "Diciembre"
+        Case Else
+            lstrMes = "      "
+        End Select
+        
+        lStrNuevaFecha = Day(pFecha) & " de " & lstrMes & " de " & Year(pFecha)
+        ConvertirFecha = UCase(lStrNuevaFecha)
+        
+        Exit Function
+Catch:
+        'Si hay un error se debe ignorar
+    End Function
+    
+    Private Function ConvertirALetras(pNumero As Double) As String
+        On Error GoTo Catch
+        ConvertirALetras = ""
+        
+        Dim lStrNumeroLetras As String
+        Dim lIntParteEntera As Integer
+        Dim lIntParteFraccion As Integer
+        Dim lStrParteEntera As String
+        Dim lStrParteFraccion As String
+        Dim lStrNuevaFecha As String
+        mstrMetodo = "ConvertirALetras() "
+        mstrAccion = "Convirtiendo un número al letras (Ctr)"
+        
+        lIntParteEntera = Int(pNumero)
+        lIntParteFraccion = (pNumero - lIntParteEntera) * 100
+        
+        lStrParteEntera = mobjAdm.CtrCon.Leyenda(lIntParteEntera, "MXP")
+        lStrParteEntera = Mid(lStrParteEntera, 2, (InStr(lStrParteEntera, "PESOS") - 2))
+        
+        If lIntParteFraccion > 0 Then
+            lStrParteFraccion = mobjAdm.CtrCon.Leyenda(lIntParteFraccion, "MXP")
+            lStrParteFraccion = Mid(lStrParteFraccion, 2, (InStr(lStrParteFraccion, "PESOS") - 2))
+            lStrNuevaFecha = lStrParteEntera & " punto " & lStrParteFraccion
+        Else
+            lStrNuevaFecha = lStrParteEntera
+        End If
+        
+        ConvertirALetras = UCase(lStrNuevaFecha)
+        
+        Exit Function
+Catch:
+        'Si hay un error se debe ignorar
+    End Function
+    
+    Private Function JustificarTexto(pTexto As String, pCaracteresPorLinea As Long) As String()
+    On Error GoTo Catch
+        mstrMetodo = "JustificarTexto()"
+        mstrAccion = "Justificando texto (Ctr)"
+        Dim lLngCaracteresDisponibles As Long
+        Dim lStrEspaciosActual() As String
+        Dim lLngEspaciosActual As Long
+        Dim lDblEspaciosFaltantes As Double
+        Dim lLngEspaciosFaltantes As Long
+        Dim lLngEspaciosExtras As Long
+        Dim lLngContador As Long
+        Dim lLngContadorI As Long
+        Dim lStrCadenas() As String
+        Dim lLngPosicion As Integer
+        lLngContador = 0
+    
+        mstrAccion = "Separando el texto en líneas (Ctr)"
+        Do While (Len(pTexto) > 0)
+            lLngPosicion = IIf(Len(pTexto) >= pCaracteresPorLinea, InStrRev(pTexto, " ", pCaracteresPorLinea + 1), Len(pTexto) + 1)
+            ReDim Preserve lStrCadenas(0 To lLngContador) As String
+            lStrCadenas(lLngContador) = Trim(Mid(pTexto, 1, lLngPosicion))
+            pTexto = Trim(Mid(pTexto, lLngPosicion, Len(pTexto)))
+            lLngContador = lLngContador + 1
+        Loop
+        
+        mstrAccion = "Agregando espacios a cada línea para justificar el texto (Ctr)"
+        For lLngContador = 0 To UBound(lStrCadenas)
+            lLngCaracteresDisponibles = pCaracteresPorLinea - Len(lStrCadenas(lLngContador))
+            If lLngCaracteresDisponibles > 0 Then
+                lStrEspaciosActual = Split(lStrCadenas(lLngContador), " ")
+                lLngEspaciosActual = UBound(lStrEspaciosActual)
+                If lLngEspaciosActual > 0 Then
+                    lDblEspaciosFaltantes = lLngCaracteresDisponibles / lLngEspaciosActual
+                    lLngEspaciosFaltantes = -Int(lDblEspaciosFaltantes * (-1))
+                    Do While (lLngCaracteresDisponibles > 0)
+                        For lLngContadorI = 0 To UBound(lStrEspaciosActual)
+                            lLngCaracteresDisponibles = lLngCaracteresDisponibles - lLngEspaciosFaltantes
+                            If lLngCaracteresDisponibles < 0 Then
+                                lLngEspaciosExtras = lLngCaracteresDisponibles + lLngEspaciosFaltantes
+                                lStrEspaciosActual(lLngContadorI) = lStrEspaciosActual(lLngContadorI) & Space(lLngEspaciosExtras)
+                                lLngContadorI = UBound(lStrEspaciosActual)
+                            Else
+                                lStrEspaciosActual(lLngContadorI) = lStrEspaciosActual(lLngContadorI) & Space(lLngEspaciosFaltantes)
+                            End If
+                        Next lLngContadorI
+                    Loop
+                    lStrCadenas(lLngContador) = ""
+                    For lLngContadorI = 0 To UBound(lStrEspaciosActual)
+                        If lLngContadorI = 0 Then
+                            lStrCadenas(lLngContador) = lStrCadenas(lLngContador) & lStrEspaciosActual(lLngContadorI)
+                        Else
+                            lStrCadenas(lLngContador) = lStrCadenas(lLngContador) & " " & lStrEspaciosActual(lLngContadorI)
+                        End If
+                    Next lLngContadorI
+                End If
+            End If
+        Next lLngContador
+        
+        JustificarTexto = lStrCadenas
+        Exit Function
+Catch:
+        'Si hay un error se debe ignorar
+    End Function
+    
+    Private Function OfrecerReformulacion(pstrBoleta As String) As Boolean
+    On Error GoTo Catch
+        mstrMetodo = "OfrecerReformulacion(Ctr)"
+        mstrAccion = "Si se ofrece o no Reformmular (Ctr)"
+        OfrecerReformulacion = False
+    
+        If (ValidarSucursalHabilitadaReformulacion) Then
+            If (ReformulacionHabilitada = mobjAdm.CtrPar.ObtenerParametro(3645)) Then
+                If (ValidarBoletaAptaReformulacion(pstrBoleta)) Then
+                    If (EsAptoReformulacion = True) Then
+                        CtrImp.ImprimirSeparador
+                        CtrImp.DefinirFuente "Arial", 13, True
+                        CtrImp.ImprimirLinea mobjAdm.CtrPar.ObtenerParametro(3647), , , eCentrado
+                        CtrImp.ImprimirLinea "", , , eCentrado
+                        CtrImp.ImprimirLinea mobjAdm.CtrPar.ObtenerParametro(3648) & " " & mobjAdm.CtrCon.Monedas.Seleccionar(Divisa).Signo & Trim(CStr(ImporteRemanente)) & " " & mobjAdm.CtrPar.ObtenerParametro(3651), , , eCentrado
+                        CtrImp.ImprimirLinea "", , , eCentrado
+                        CtrImp.DefinirFuente "Arial", 10, True
+                        CtrImp.ImprimirLinea mobjAdm.CtrPar.ObtenerParametro(3649), , , eCentrado
+                        CtrImp.ImprimirLinea mobjAdm.CtrPar.ObtenerParametro(3650), , , eCentrado
+                        CtrImp.ImprimirLinea mobjAdm.CtrPar.ObtenerParametro(3652), , , eCentrado
+                        If (IdSucursalResguardoBoleta <> mobjAdm.Control.IdTienda) Then
+                            CtrImp.ImprimirLinea " de Sucursal " & IdSucursalResguardoBoleta & " " & SucursalResguardoBoleta, , , eCentrado
+                        End If
+                        CtrImp.ImprimirSeparador
+                        CtrImp.ImprimirLinea "", , , eCentrado
+                        OfrecerReformulacion = True
+                    End If
+                End If
+            End If
+        End If
+    
+       Exit Function
+Catch:
+        mobjAdm.CtrErr.Mostrar Me, App, Err, False
+    End Function
+    
+    Private Function ValidarSucursalHabilitadaReformulacion() As Boolean
+    On Error GoTo Catch
+        mstrMetodo = "ValidarSucursalHabilitadaReformulacion()"
+        mstrAccion = "Validando si la tienda tiene habilitada Reformulación (Ctr)"
+        
+        lobjAbd.lstrSql = mobjAdm.CtrPar.ObtenerParametro(1571) & mobjAdm.CtrPar.ObtenerParametro(3644) & "ObtenerSucursalReformulacion?astrCambioProceso=" & mobjAdm.CtrPar.ObtenerParametro(3645) & "&astrSucursal=" & mobjAdm.Tienda.IdTienda
+    
+        ValidarSucursalHabilitadaReformulacion = lobjAbd.ValidarSucursalHabilitadaReformulacion(Me)
+    
+        Exit Function
+Catch:
+        mobjAdm.CtrErr.Mostrar Me, App, Err, False
+    End Function
+    
+    Private Function ValidarBoletaAptaReformulacion(pstrBoleta As String) As Boolean
+    On Error GoTo Catch
+        mstrMetodo = "ValidarBoletaAptaReformulacion()"
+        mstrAccion = "Validando si boleta es apta para Reformulación (Ctr)"
+        
+        lobjAbd.lstrSql = mobjAdm.CtrPar.ObtenerParametro(1571) & mobjAdm.CtrPar.ObtenerParametro(3644) & "ValidarBoletaAptaReformulacion?astrBoleta=" & pstrBoleta & "&astrValidarRefrendo=" & _
+                      mobjAdm.CtrPar.ObtenerParametro(3646) & "&astrpiIdPais=" & mobjAdm.Pais.IdPais & "&astrpiIdCanal=" & mobjAdm.Canal.IdCanal & "&astrpiIdSucursal=" & mobjAdm.Control.IdTienda
+    
+        ValidarBoletaAptaReformulacion = lobjAbd.ValidarBoletaAptaReformulacion(Me)
+    
+        Exit Function
+Catch:
+        mobjAdm.CtrErr.Mostrar Me, App, Err, False
+    End Function
+    
+    Private Function ConsultarInformacionBoletaReformulada(pstrBoleta As String) As Boolean
+    On Error GoTo Catch
+        mstrMetodo = "ConsultarInformacionBoletaReformulada(Ctr)"
+        ConsultarInformacionBoletaReformulada = False
+        mstrAccion = "Validando si la boleta es Reformulada (Ctr)"
+        
+        lobjAbd.lstrSql = mobjAdm.CtrPar.ObtenerParametro(1571) & mobjAdm.CtrPar.ObtenerParametro(3644) & "ConsultarInformacionBoletaReformulada?astrBoleta=" & pstrBoleta
+    
+        ConsultarInformacionBoletaReformulada = lobjAbd.ConsultarInformacionBoletaReformulada(Me)
+    
+        Exit Function
+Catch:
+        mobjAdm.CtrErr.Mostrar Me, App, Err, False
+    End Function
+    
+    Private Function ValidarMejorasTicketHabilitada() As Boolean
+    On Error GoTo Catch
+        mstrMetodo = "ValidarMejorasTicketHabilitada(Ctr)"
+        mstrAccion = "Validando si la tienda tiene MejorasTicket Habilitada(Ctr)"
+        
+        lobjAbd.lstrSql = mobjAdm.CtrPar.ObtenerParametro(1571) & mobjAdm.CtrPar.ObtenerParametro(3663) & "ObtenerSucursalTipoProceso?astrCambioProceso=" & mobjAdm.CtrPar.ObtenerParametro(3664) & "&astrSucursal=" & mobjAdm.Tienda.IdTienda
+          
+        ValidarMejorasTicketHabilitada = lobjAbd.ObtenerSucursalTipoProceso(Me)
+         
+         
+        Exit Function
+Catch:
+        mobjAdm.CtrErr.Mostrar Me, App, Err, False
+    End Function
+
+    
+    
+    Private Function ObtenerTerminosCondiciones(pObjentidad As Object) As Boolean
+    On Error GoTo Catch
+        mstrMetodo = "ObtenerTerminosCondiciones(Ctr)"
+        mstrAccion = "Obteniendo valores para TerminosCondiciones(Ctr)"
+        
+        'Parametrizar el CreditoPrendarioSwnArmarTicketCajaS90.asmx en tabla AhoParametro
+        lobjAbd.lstrSql = mobjAdm.CtrPar.ObtenerParametro(1571) & "CreditoPrendarioSwnArmarTicketCajaS90.asmx/" & "ObtenerTerminosCondiciones?astrBoleta=" & Trim(pObjentidad.Boleta.Boleta)
+    
+        ObtenerTerminosCondiciones = lobjAbd.ObtenerTerminosCondiciones(Me)
+    
+        Exit Function
+Catch:
+        mobjAdm.CtrErr.Mostrar Me, App, Err.Description, False
+        MsgBox Err.Description
+    End Function
+    
+    Private Function ObtenerReca(pObjentidad As Object) As String
+    On Error GoTo Catch
+        mstrMetodo = "ObtenerReca(Ctr)"
+        mstrAccion = "Obteniendo valores para el contrato de Adhesion"
+        
+        lobjAbd.lstrSql = mobjAdm.CtrPar.ObtenerParametro(1571) & "CreditoPrendarioSwnArmarTicketCajaS90.asmx/" & "ObtenerTipoProductoBoleta?astrBoleta=" & Trim(pObjentidad.Boleta.Boleta)
+        
+        ObtenerReca = lobjAbd.ObtenerReca(Me)
+        
+        Exit Function
+Catch:
+         mobjAdm.CtrErr.Mostrar Me, App, Err, False
+    End Function
+    
+  Private Function ValidarOmitirBoletaExpress(pObjentidad As Object) As Boolean
+  On Error GoTo Catch
+        
+        mstrMetodo = "ValidarMejorasTicketHabilitada(Ctr)"
+        mstrAccion = "Validando si la tienda omite a los productos Express(Ctr)"
+        
+        lobjAbd.lstrSql = mobjAdm.CtrPar.ObtenerParametro(1571) & "CreditoPrendarioSwnObtenerPpeTipoS90.asmx/" & "ObtenerValidacionBoletaExpress?astrCambioProceso=" & mobjAdm.CtrPar.ObtenerParametro(3664) & "&astrSucursal=" & mobjAdm.Tienda.IdTienda & "&astrboleta=" & Trim(pObjentidad.Boleta.Boleta)
+        ValidarOmitirBoletaExpress = lobjAbd.ValidarOmitirBoletaExpress(Me)
+        If (ResultadoTipoProceso = 0) Then
+                    MejorasTicketHabilitada = False
+        End If
+        Exit Function
+Catch:
+        mobjAdm.CtrErr.Mostrar Me, App, Err, False
+      
+  End Function
